@@ -52,10 +52,9 @@ Master and Agent Nodes
 ======================
 
 Determined comprises a single *master* and one or more *agents* in a cluster environment. The master
-is a single, non-GPU node that manages the cluster.
+is a single, non-GPU node that manages the cluster and keeps experiment metadata in a PostgreSQL database
 
-The master keeps experiment metadata in a PostgreSQL database, which can be queried using the WebUI
-or CLI. You can interact with the master, directly, but cannot interact with agents.
+You can interact directly with the master using the WebUI or CLI. The master alone communicates with agents as needed.
 
 Master Node Scope of Responsibility
 -----------------------------------
@@ -81,8 +80,8 @@ and scheduling functionality:
 +---------------+----------------------------------------------------------------------+
 | Metrics       | *Metrics* provides persistent storage of metrics reported by Trials. |
 +---------------+----------------------------------------------------------------------+
-| Checkpointing | *Checkpointing* captures the training state at a given time in the   |
-|               | *model registry*.                                                    |
+| Checkpointing | *Checkpointing* captures the training state at a given time. You can |
+|               | choose to save checkpoint information in the *model registry*.       |
 +---------------+----------------------------------------------------------------------+
 | Scheduling    | *Scheduling* schedules jobs to run, ensuring that all of the compute |
 |               | resources required for a job are available before the job launches.  |
@@ -94,76 +93,28 @@ Agent Node Scope of Responsibility
 Agent node responsibilities:
 
 -  Discovers local computing devices and sends device/slot metadata to the master.
--  Runs workloads at the request of the master.
--  Monitors containers and sends container information to the master.
--  For a *trial runner*, which runs a trial in a containerized environment, reports trial runner
-   states to the master.
+-  Starts task containers at the request of the master.
+-  Monitors task containers and sends container information to the master.
 
 The agent manages a number of GPU or CPU devices, which are referred to as *slots*. There is
 typically one agent per compute server and the active experiment volume dictates the number of
 agents needed.
 
-Agents communicate only with the master and state information is not maintained on the agent.
+Agents communicate only with the master and do not persist any information across restarts.
 
 PostgreSQL Database
 ===================
 
 Each cluster requires access to a `PostgreSQL <https://www.postgresql.org/>`_ database to store
 experiment and trial metadata. Although not required, the database typically resides on the master.
-If you use the ``det deploy`` command to launch Determined on a cloud provider or on-premises,
-PostgreSQL preinstalls a network file system shared by all agents. Otherwise, you need to manually
-install PostgreSQL.
+When you use the ``det deploy`` command, Determined prepares a PostgreSQL instance for you. Otherwise, you need to manually install PostgreSQL.
 
 Docker Images
 =============
 
-Determined launches workloads using `Docker <https://www.docker.com/>`_ containers. By default,
-workloads execute inside a Determined-provided container that includes common deep learning
-libraries and frameworks.
+Determined launches workloads using `Docker <https://www.docker.com/>`_ containers. Determined provides a default container that includes common deep learning libraries and frameworks.
 
-Default Docker images are provided to launch containers for experiments, commands, and other
-workflows. All trial runner containers are launched with additional Determined-specific harness
-code, which orchestrates model training and evaluation in the container. Trial runner containers are
-also loaded with the experiment model definition and hyperparameter values for the current trial.
-GPU-specific versions of each library are automatically selected when running on agents with GPUs.
-
-If your model code has additional dependencies, you can specify a startup hook to load the
-additional dependencies. If a startup hook exists, the file automatically runs with every Docker
-container startup.
-
-If you use the ``det deploy`` command on a cloud provider, Docker is preinstalled. For a manual or
-on-premises deployment using ``det deploy``, you need to manually install Docker.
-
-Additional Core Cloud Resources
-===============================
-
-+----------+---------------------------------------------+
-| Provider | Core Resource                               |
-+==========+=============================================+
-| AWS      | -  AWS Identity and Access Management (IAM) |
-|          | -  Security Groups                          |
-+----------+---------------------------------------------+
-| GCP      | -  Service Account                          |
-|          | -  Firewall Rules                           |
-+----------+---------------------------------------------+
-
-Additional Peripheral Cloud Resources
-=====================================
-
-+----------+----------------------------------------------+
-| Provider | Peripheral Resource                          |
-+==========+==============================================+
-| AWS      | -  Network/Subnetwork                        |
-|          | -  Elastic IP                                |
-|          | -  Amazon Simple Storage Service (S3) Bucket |
-+----------+----------------------------------------------+
-| GCP      | -  Network/Subnetwork                        |
-|          | -  Static IP                                 |
-|          | -  Google Filestore                          |
-|          | -  Google Cloud Storage (GCS) bucket         |
-|          | -  AWS Identity and Access Management (IAM)  |
-|          | -  Security Groups                           |
-+----------+----------------------------------------------+
+If you use the ``det deploy aws`` or ``det deploy gcp`` command on a cloud provider, Docker is preinstalled. For a manual or on-premises deployment using ``det deploy local``, you need to manually install Docker.
 
 *******************
  Design Principles
@@ -234,14 +185,6 @@ Job queue management is available to the fair share, priority, and Kubernetes pr
 and exposes scheduler functionality for visibility and control over scheduling decisions. The *job
 queue* provides information about job ordering and which jobs are queued, which you can manage
 dynamically.
-
-By default, the Kubernetes scheduler does not support gang scheduling or preemption. This can be
-problematic for deep learning workloads that require multiple pods to be scheduled before execution
-starts, such as distributed training. Determined includes built-in support for the `lightweight
-coscheduling plugin
-<https://github.com/kubernetes-sigs/scheduler-plugins/tree/release-1.18/pkg/coscheduling>`__, which
-extends the default Kubernetes scheduler to support gang scheduling. Determined also includes
-support for priority-based scheduling with preemption, although, neither is enabled by default.
 
 ********************
  Training Scenarios
