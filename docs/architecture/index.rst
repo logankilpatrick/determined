@@ -52,9 +52,11 @@ Master and Agent Nodes
 ======================
 
 Determined comprises a single *master* and one or more *agents* in a cluster environment. The master
-is a single, non-GPU node that manages the cluster and keeps experiment metadata in a PostgreSQL database
+is a single, non-GPU node that manages the cluster and keeps experiment metadata in a PostgreSQL
+database
 
-You can interact directly with the master using the WebUI or CLI. The master alone communicates with agents as needed.
+You can interact directly with the master using the WebUI or CLI. The master alone communicates with
+agents as needed.
 
 Master Node Scope of Responsibility
 -----------------------------------
@@ -107,14 +109,18 @@ PostgreSQL Database
 
 Each cluster requires access to a `PostgreSQL <https://www.postgresql.org/>`_ database to store
 experiment and trial metadata. Although not required, the database typically resides on the master.
-When you use the ``det deploy`` command, Determined prepares a PostgreSQL instance for you. Otherwise, you need to manually install PostgreSQL.
+When you use the ``det deploy`` command, Determined prepares a PostgreSQL instance for you.
+Otherwise, you need to manually install PostgreSQL.
 
 Docker Images
 =============
 
-Determined launches workloads using `Docker <https://www.docker.com/>`_ containers. Determined provides a default container that includes common deep learning libraries and frameworks.
+Determined launches workloads using `Docker <https://www.docker.com/>`_ containers. Determined
+provides a default container that includes common deep learning libraries and frameworks.
 
-If you use the ``det deploy aws`` or ``det deploy gcp`` command on a cloud provider, Docker is preinstalled. For a manual or on-premises deployment using ``det deploy local``, you need to manually install Docker.
+If you use the ``det deploy aws`` or ``det deploy gcp`` command on a cloud provider, Docker is
+preinstalled. For a manual or on-premises deployment using ``det deploy local``, you need to
+manually install Docker.
 
 *******************
  Design Principles
