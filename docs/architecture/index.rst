@@ -8,9 +8,9 @@
 
 .. pull-quote::
 
-   Determined makes it easy to transform data into probabilities.
+   "Determined makes it easy to transform data into probabilities."
 
-   -- Garrett Goon
+   -- Garrett Goon, 2022
 
 **********
  Overview
