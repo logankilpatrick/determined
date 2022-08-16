@@ -75,6 +75,7 @@ message TrialSorter {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
     json_schema: { required: [ "namespace", "field"] }
   };
+  // used to determined 
   enum Namespace {
     TRIALS             = 0;
     HPARAMS            = 1;
@@ -89,26 +90,26 @@ message TrialSorter {
 
 // Filters to be applied to trials. Can be used to
 message TrialFilters {
-  // Filter trails by their corresponding experiment ids.
+  // Filter trials by their corresponding experiment ids.
   repeated int32 experiment_ids                 = 1;
-  // Filter trails by their corresponding experiment ids.
+  // Filter trials by their corresponding experiment ids.
   repeated int32 project_ids                    = 2;
-  // Filter trails by their corresponding experiment ids.
+  // Filter trials by their corresponding experiment ids.
   repeated int32 workspace_ids                  = 3;
-  // Filter trails to those containing ALL validation_metrics
+  // Filter trials to those containing ALL validation_metrics
   // within the indicated ranges.    
   repeated NumberRangeFilter validation_metrics = 4;
-  // Filter trails to those containing ALL training_metrics
+  // Filter trials to those containing ALL training_metrics
   // within the indicated ranges.  
   repeated NumberRangeFilter training_metrics   = 5;
-  // Filter trails to those containing ALL hyperparameters
+  // Filter trials to those containing ALL hyperparameters
   // within the indicated ranges.
   repeated NumberRangeFilter hparams            = 6;
   // Filter trials according to the creators user id.
   repeated int32 user_ids                       = 8;
-  // Filter trails according to the name of the searcher used.
+  // Filter trials according to the name of the searcher used.
   string searcher                               = 7;
-  // Filter trails to those containing ANY of the provided tags.
+  // Filter trials to those containing ANY of the provided tags.
   repeated TrialTag tags                        = 9;
   // Specifies a ranking for trials within their experiment.
   message RankWithinExp {
@@ -124,7 +125,7 @@ message TrialFilters {
   // Filter trials to those ending within the given range.
   TimeRangeFilter end_time                      = 12;
   // Filter trials to those with the given state.
-  repeated string state                         = 13;
+  repeated determined.experiment.v1.State states          = 13;
 }
 
 message QueryTrialsRequest {
@@ -181,7 +182,7 @@ message AugmentedTrial {
     }
   };
   int32 trial_id                            = 1;
-  string state                              = 2;
+  determined.experiment.v1.State states = 2;
   google.protobuf.Struct hparams            = 3;
   google.protobuf.Struct training_metrics   = 4;
   google.protobuf.Struct validation_metrics = 5;
@@ -207,7 +208,7 @@ message QueryTrialsResponse {
 message TrialPatch {
   repeated TrialTag add_tag = 1;
   repeated TrialTag remove_tag =2;
-e",}
+}
 
 message BulkPatchTrialsRequest {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
