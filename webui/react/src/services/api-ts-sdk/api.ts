@@ -1174,10 +1174,10 @@ export interface V1AugmentedTrial {
     trialId: number;
     /**
      * 
-     * @type {string}
+     * @type {Determinedexperimentv1State}
      * @memberof V1AugmentedTrial
      */
-    state: string;
+    states?: Determinedexperimentv1State;
     /**
      * 
      * @type {any}
@@ -7146,10 +7146,10 @@ export interface V1TrialFilters {
     endTime?: V1TimeRangeFilter;
     /**
      * Filter trials to those with the given state.
-     * @type {Array<string>}
+     * @type {Array<Determinedexperimentv1State>}
      * @memberof V1TrialFilters
      */
-    state?: Array<string>;
+    states?: Array<Determinedexperimentv1State>;
 }
 
 /**

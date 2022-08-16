@@ -714,7 +714,6 @@ class v1AugmentedTrial:
         projectId: int,
         searcherType: str,
         startTime: str,
-        state: str,
         tags: "typing.Dict[str, typing.Any]",
         totalBatches: int,
         trainingMetrics: "typing.Dict[str, typing.Any]",
@@ -723,9 +722,10 @@ class v1AugmentedTrial:
         validationMetrics: "typing.Dict[str, typing.Any]",
         workspaceId: int,
         rankWithinExp: "typing.Optional[int]" = None,
+        states: "typing.Optional[determinedexperimentv1State]" = None,
     ):
         self.trialId = trialId
-        self.state = state
+        self.states = states
         self.hparams = hparams
         self.trainingMetrics = trainingMetrics
         self.validationMetrics = validationMetrics
@@ -747,7 +747,7 @@ class v1AugmentedTrial:
     def from_json(cls, obj: Json) -> "v1AugmentedTrial":
         return cls(
             trialId=obj["trialId"],
-            state=obj["state"],
+            states=determinedexperimentv1State(obj["states"]) if obj.get("states", None) is not None else None,
             hparams=obj["hparams"],
             trainingMetrics=obj["trainingMetrics"],
             validationMetrics=obj["validationMetrics"],
@@ -769,7 +769,7 @@ class v1AugmentedTrial:
     def to_json(self) -> typing.Any:
         return {
             "trialId": self.trialId,
-            "state": self.state,
+            "states": self.states.value if self.states is not None else None,
             "hparams": self.hparams,
             "trainingMetrics": self.trainingMetrics,
             "validationMetrics": self.validationMetrics,
@@ -6353,7 +6353,7 @@ class v1TrialFilters:
         rankWithinExp: "typing.Optional[TrialFiltersRankWithinExp]" = None,
         searcher: "typing.Optional[str]" = None,
         startTime: "typing.Optional[v1TimeRangeFilter]" = None,
-        state: "typing.Optional[typing.Sequence[str]]" = None,
+        states: "typing.Optional[typing.Sequence[determinedexperimentv1State]]" = None,
         tags: "typing.Optional[typing.Sequence[v1TrialTag]]" = None,
         trainingMetrics: "typing.Optional[typing.Sequence[v1NumberRangeFilter]]" = None,
         userIds: "typing.Optional[typing.Sequence[int]]" = None,
@@ -6372,7 +6372,7 @@ class v1TrialFilters:
         self.rankWithinExp = rankWithinExp
         self.startTime = startTime
         self.endTime = endTime
-        self.state = state
+        self.states = states
 
     @classmethod
     def from_json(cls, obj: Json) -> "v1TrialFilters":
@@ -6389,7 +6389,7 @@ class v1TrialFilters:
             rankWithinExp=TrialFiltersRankWithinExp.from_json(obj["rankWithinExp"]) if obj.get("rankWithinExp", None) is not None else None,
             startTime=v1TimeRangeFilter.from_json(obj["startTime"]) if obj.get("startTime", None) is not None else None,
             endTime=v1TimeRangeFilter.from_json(obj["endTime"]) if obj.get("endTime", None) is not None else None,
-            state=obj.get("state", None),
+            states=[determinedexperimentv1State(x) for x in obj["states"]] if obj.get("states", None) is not None else None,
         )
 
     def to_json(self) -> typing.Any:
@@ -6406,7 +6406,7 @@ class v1TrialFilters:
             "rankWithinExp": self.rankWithinExp.to_json() if self.rankWithinExp is not None else None,
             "startTime": self.startTime.to_json() if self.startTime is not None else None,
             "endTime": self.endTime.to_json() if self.endTime is not None else None,
-            "state": self.state if self.state is not None else None,
+            "states": [x.value for x in self.states] if self.states is not None else None,
         }
 
 class v1TrialLogsFieldsResponse:
