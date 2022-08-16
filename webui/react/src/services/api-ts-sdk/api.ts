@@ -182,6 +182,23 @@ export enum Determinedtaskv1State {
 }
 
 /**
+ * - STATE_ACTIVE: The trial is in an active state.  - STATE_PAUSED: The trial is in a paused state  - STATE_STOPPING_CANCELED: The trial is canceled and is shutting down.  - STATE_STOPPING_KILLED: The trial is killed and is shutting down.  - STATE_STOPPING_COMPLETED: The trial is completed and is shutting down.  - STATE_STOPPING_ERROR: The trial is errored and is shutting down.  - STATE_CANCELED: The trial is canceled and is shut down.  - STATE_COMPLETED: The trial is completed and is shut down.  - STATE_ERROR: The trial is errored and is shut down.
+ * @export
+ * @enum {string}
+ */
+export enum Determinedtrialv1State {
+    ACTIVE = <any> 'STATE_ACTIVE',
+    PAUSED = <any> 'STATE_PAUSED',
+    STOPPINGCANCELED = <any> 'STATE_STOPPING_CANCELED',
+    STOPPINGKILLED = <any> 'STATE_STOPPING_KILLED',
+    STOPPINGCOMPLETED = <any> 'STATE_STOPPING_COMPLETED',
+    STOPPINGERROR = <any> 'STATE_STOPPING_ERROR',
+    CANCELED = <any> 'STATE_CANCELED',
+    COMPLETED = <any> 'STATE_COMPLETED',
+    ERROR = <any> 'STATE_ERROR'
+}
+
+/**
  * Series of data points for an experiment trial.
  * @export
  * @interface ExpCompareTrialsSampleResponseExpTrial
@@ -1174,10 +1191,10 @@ export interface V1AugmentedTrial {
     trialId: number;
     /**
      * 
-     * @type {Determinedexperimentv1State}
+     * @type {Determinedtrialv1State}
      * @memberof V1AugmentedTrial
      */
-    states?: Determinedexperimentv1State;
+    state: Determinedtrialv1State;
     /**
      * 
      * @type {any}
@@ -1751,7 +1768,7 @@ export interface V1CreateTrialsCollectionRequest {
      * @type {V1TrialSorter}
      * @memberof V1CreateTrialsCollectionRequest
      */
-    sorter?: V1TrialSorter;
+    sorter: V1TrialSorter;
 }
 
 /**

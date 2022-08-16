@@ -182,7 +182,7 @@ message AugmentedTrial {
     }
   };
   int32 trial_id                            = 1;
-  determined.experiment.v1.State states = 2;
+  determined.trial.v1.State state      = 2;
   google.protobuf.Struct hparams            = 3;
   google.protobuf.Struct training_metrics   = 4;
   google.protobuf.Struct validation_metrics = 5;
@@ -257,7 +257,7 @@ message GetTrialsCollectionsResponse {
 
 message CreateTrialsCollectionRequest {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
-    json_schema: { required: ["name", "project_id", "filters" ] }
+    json_schema: { required: ["name", "project_id", "filters", "sorter" ] }
   };
   string name          = 1;
   int32 project_id     = 2;

@@ -449,6 +449,29 @@ WHERE t.id = $1;
 	return errors.Wrapf(err, "error updating best validation for trial %d", id)
 }
 
+type TrialsAugmented struct {
+	bun.BaseModel         `bun:"table:trials_augmented_view,alias:trials_augmented_view"`
+	TrialID               int32              `bun:"trial_id"`
+	State                 trialv1.State      `bun:"state"`
+	Hparams               model.JSONObj      `bun:"hparams"`
+	TrainingMetrics       map[string]float64 `bun:"training_metrics,json_use_number"`
+	ValidationMetrics     map[string]float64 `bun:"validation_metrics,json_use_number"`
+	Tags                  map[string]string  `bun:"tags"`
+	StartTime             time.Time          `bun:"start_time"`
+	EndTime               time.Time          `bun:"end_time"`
+	SearcherType          string             `bun:"searcher_type"`
+	ExperimentId          int32              `bun:"experiment_id"`
+	ExperimentName        string             `bun:"experiment_name"`
+	ExperimentDescription string             `bun:"experiment_description"`
+	ExperimentLabels      []string           `bun:"experiment_labels"`
+	UserId                int32              `bun:"user_id"`
+	ProjectId             int32              `bun:"project_id"`
+	WorkspaceId           int32              `bun:"workspace_id"`
+	TotalBatches          int32              `bun:"total_batches"`
+
+	RankWithinExp int32 `bun:"n,scanonly"`
+}
+
 // Proto converts an Augmented Trial to its protobuf representation.
 func (t *TrialsAugmented) Proto() *apiv1.AugmentedTrial {
 	return &apiv1.AugmentedTrial{
@@ -591,29 +614,6 @@ func conditionalForDateTimeRange(dateTime *apiv1.TimeRangeFilter) string {
 	return "IS NOT NULL"
 }
 
-type TrialsAugmented struct {
-	bun.BaseModel         `bun:"table:trials_augmented_view,alias:trials_augmented_view"`
-	TrialID               int32              `bun:"trial_id"`
-	State                 string             `bun:"state"`
-	Hparams               model.JSONObj      `bun:"hparams"`
-	TrainingMetrics       map[string]float64 `bun:"training_metrics,json_use_number"`
-	ValidationMetrics     map[string]float64 `bun:"validation_metrics,json_use_number"`
-	Tags                  map[string]string  `bun:"tags"`
-	StartTime             time.Time          `bun:"start_time"`
-	EndTime               time.Time          `bun:"end_time"`
-	SearcherType          string             `bun:"searcher_type"`
-	ExperimentId          int32              `bun:"experiment_id"`
-	ExperimentName        string             `bun:"experiment_name"`
-	ExperimentDescription string             `bun:"experiment_description"`
-	ExperimentLabels      []string           `bun:"experiment_labels"`
-	UserId                int32              `bun:"user_id"`
-	ProjectId             int32              `bun:"project_id"`
-	WorkspaceId           int32              `bun:"workspace_id"`
-	TotalBatches          int32              `bun:"total_batches"`
-
-	RankWithinExp int32 `bun:"n,scanonly"`
-}
-
 func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, selectAll bool) (*bun.SelectQuery, error) {
 	// FilterTrials filters trials according to filters
 
@@ -711,7 +711,7 @@ func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, se
 	if len(filters.UserIds) > 0 {
 		q.Where("user_id IN (?)", bun.In(filters.UserIds))
 	}
-	
+
 	if filters.StartTime != nil {
 		conditional := conditionalForDateTimeRange(filters.StartTime)
 		q.Where("start_time ?", conditional)
@@ -722,10 +722,9 @@ func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, se
 		q.Where("end_time ?", conditional)
 	}
 
-	if len(filters.State) > 0 {
-		q.Where("state in (?)", bun.In(filters.State))
+	if len(filters.States) > 0 {
+		q.Where("state in (?)", bun.In(filters.States))
 	}
-
 
 	return q, nil
 }

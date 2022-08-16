@@ -388,12 +388,10 @@ func checkTrialFiltersEmpty(f *apiv1.TrialFilters) error {
 		len(f.Hparams) +
 		len(f.Searcher) +
 		len(f.UserIds) +
-		len(f.Tags) + 
-		len(f.State)
-
+		len(f.Tags) +
+		len(f.States)
 
 	if filtersLength == 0 && f.RankWithinExp == nil && f.StartTime == nil && f.EndTime == nil {
-
 		return emptyFilters
 	}
 	return nil

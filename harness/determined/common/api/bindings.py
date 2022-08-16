@@ -218,6 +218,17 @@ class determinedtaskv1State(enum.Enum):
     STATE_TERMINATED = "STATE_TERMINATED"
     STATE_TERMINATING = "STATE_TERMINATING"
 
+class determinedtrialv1State(enum.Enum):
+    STATE_ACTIVE = "STATE_ACTIVE"
+    STATE_PAUSED = "STATE_PAUSED"
+    STATE_STOPPING_CANCELED = "STATE_STOPPING_CANCELED"
+    STATE_STOPPING_KILLED = "STATE_STOPPING_KILLED"
+    STATE_STOPPING_COMPLETED = "STATE_STOPPING_COMPLETED"
+    STATE_STOPPING_ERROR = "STATE_STOPPING_ERROR"
+    STATE_CANCELED = "STATE_CANCELED"
+    STATE_COMPLETED = "STATE_COMPLETED"
+    STATE_ERROR = "STATE_ERROR"
+
 class protobufAny:
     def __init__(
         self,
@@ -714,6 +725,7 @@ class v1AugmentedTrial:
         projectId: int,
         searcherType: str,
         startTime: str,
+        state: "determinedtrialv1State",
         tags: "typing.Dict[str, typing.Any]",
         totalBatches: int,
         trainingMetrics: "typing.Dict[str, typing.Any]",
@@ -722,10 +734,9 @@ class v1AugmentedTrial:
         validationMetrics: "typing.Dict[str, typing.Any]",
         workspaceId: int,
         rankWithinExp: "typing.Optional[int]" = None,
-        states: "typing.Optional[determinedexperimentv1State]" = None,
     ):
         self.trialId = trialId
-        self.states = states
+        self.state = state
         self.hparams = hparams
         self.trainingMetrics = trainingMetrics
         self.validationMetrics = validationMetrics
@@ -747,7 +758,7 @@ class v1AugmentedTrial:
     def from_json(cls, obj: Json) -> "v1AugmentedTrial":
         return cls(
             trialId=obj["trialId"],
-            states=determinedexperimentv1State(obj["states"]) if obj.get("states", None) is not None else None,
+            state=determinedtrialv1State(obj["state"]),
             hparams=obj["hparams"],
             trainingMetrics=obj["trainingMetrics"],
             validationMetrics=obj["validationMetrics"],
@@ -769,7 +780,7 @@ class v1AugmentedTrial:
     def to_json(self) -> typing.Any:
         return {
             "trialId": self.trialId,
-            "states": self.states.value if self.states is not None else None,
+            "state": self.state.value,
             "hparams": self.hparams,
             "trainingMetrics": self.trainingMetrics,
             "validationMetrics": self.validationMetrics,
@@ -1202,7 +1213,7 @@ class v1CreateTrialsCollectionRequest:
         filters: "v1TrialFilters",
         name: str,
         projectId: int,
-        sorter: "typing.Optional[v1TrialSorter]" = None,
+        sorter: "v1TrialSorter",
     ):
         self.name = name
         self.projectId = projectId
@@ -1215,7 +1226,7 @@ class v1CreateTrialsCollectionRequest:
             name=obj["name"],
             projectId=obj["projectId"],
             filters=v1TrialFilters.from_json(obj["filters"]),
-            sorter=v1TrialSorter.from_json(obj["sorter"]) if obj.get("sorter", None) is not None else None,
+            sorter=v1TrialSorter.from_json(obj["sorter"]),
         )
 
     def to_json(self) -> typing.Any:
@@ -1223,7 +1234,7 @@ class v1CreateTrialsCollectionRequest:
             "name": self.name,
             "projectId": self.projectId,
             "filters": self.filters.to_json(),
-            "sorter": self.sorter.to_json() if self.sorter is not None else None,
+            "sorter": self.sorter.to_json(),
         }
 
 class v1CreateTrialsCollectionResponse:
