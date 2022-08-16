@@ -3,16 +3,23 @@ package db
 import (
 	"context"
 	"fmt"
+	"regexp"
 	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"github.com/uptrace/bun"
+	"github.com/uptrace/bun/dialect/pgdialect"
+
+	wrappers "github.com/golang/protobuf/ptypes/wrappers"
 
 	"github.com/determined-ai/determined/master/internal/api"
 	"github.com/determined-ai/determined/master/pkg/model"
+	"github.com/determined-ai/determined/master/pkg/protoutils"
 	"github.com/determined-ai/determined/master/pkg/ptrs"
+	"github.com/determined-ai/determined/proto/pkg/apiv1"
 	"github.com/determined-ai/determined/proto/pkg/trialv1"
 )
 
@@ -440,4 +447,285 @@ SET best_validation_id = (SELECT bv.id FROM best_validation bv)
 WHERE t.id = $1;
 `, id)
 	return errors.Wrapf(err, "error updating best validation for trial %d", id)
+}
+
+// Proto converts an Augmented Trial to its protobuf representation.
+func (t *TrialsAugmented) Proto() *apiv1.AugmentedTrial {
+	return &apiv1.AugmentedTrial{
+		TrialId:               t.TrialID,
+		State:                 t.State,
+		Hparams:               protoutils.ToStruct(t.Hparams),
+		TrainingMetrics:       protoutils.ToStruct(t.TrainingMetrics),
+		ValidationMetrics:     protoutils.ToStruct(t.ValidationMetrics),
+		Tags:                  protoutils.ToStruct(t.Tags),
+		StartTime:             protoutils.ToTimestamp(t.StartTime),
+		EndTime:               protoutils.ToTimestamp(t.EndTime),
+		SearcherType:          t.SearcherType,
+		ExperimentId:          t.ExperimentId,
+		ExperimentName:        t.ExperimentName,
+		ExperimentDescription: t.ExperimentDescription,
+		ExperimentLabels:      t.ExperimentLabels,
+		UserId:                t.UserId,
+		ProjectId:             t.ProjectId,
+		WorkspaceId:           t.WorkspaceId,
+		TotalBatches:          t.TotalBatches,
+		RankWithinExp:         t.RankWithinExp,
+	}
+}
+
+type TrialsCollection struct {
+	ID        int32               `bun:"id,pk,autoincrement"`
+	UserId    int32               `bun:"user_id"`
+	ProjectId int32               `bun:"project_id"`
+	Name      string              `bun:"name"`
+	Filters   *apiv1.TrialFilters `bun:"filters,type:jsonb"`
+	Sorter    *apiv1.TrialSorter  `bun:"sorter,type:jsonb"`
+}
+
+func (tc *TrialsCollection) Proto() *apiv1.TrialsCollection {
+	return &apiv1.TrialsCollection{
+		Id:        tc.ID,
+		UserId:    tc.UserId,
+		ProjectId: tc.ProjectId,
+		Name:      tc.Name,
+		Filters:   tc.Filters,
+		Sorter:    tc.Sorter,
+	}
+}
+
+var QueryTrialsOrderMap = map[apiv1.OrderBy]SortDirection{
+	apiv1.OrderBy_ORDER_BY_UNSPECIFIED: SortDirectionAsc,
+	apiv1.OrderBy_ORDER_BY_ASC:         SortDirectionAsc,
+	apiv1.OrderBy_ORDER_BY_DESC:        SortDirectionDescNullsLast,
+}
+
+// This allows dot on top of whats allowed in existing regex validField.
+var safeString = regexp.MustCompile(`^[a-zA-Z0-9_\.\-]+$`)
+
+func hParamAccessor(hp string) string {
+	nesting := strings.Split(hp, ".")
+	nestingWithQuotes := []string{}
+	for _, n := range nesting {
+		nestingWithQuotes = append(nestingWithQuotes, fmt.Sprintf("'%s'", n))
+	}
+	return "hparams->>" + strings.Join(nestingWithQuotes, "->>")
+}
+
+func kv(key string) string {
+	return fmt.Sprintf(`"%s":""`, key)
+}
+
+func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (*bun.UpdateQuery, error) {
+	// takes an update query and adds the Set clauses for the patch
+
+	if len(payload.AddTag) > 0 || len(payload.RemoveTag) > 0 {
+		// adding the tags phrases
+		// want to amek tags::jsonb || '{"add", ""}' || '{"these", ""} || -
+		setPhrases := []string{"tags = tags::jsonb"}
+
+		if len(payload.AddTag) > 0 {
+			itemsAdd := []string{}
+			for _, tag := range payload.AddTag {
+				// sanitize tag.Key
+				itemsAdd = append(itemsAdd, kv(tag.Key))
+			}
+			addPhrase := fmt.Sprintf(`|| '{%s}'`, strings.Join(itemsAdd, ","))
+			setPhrases = append(setPhrases, addPhrase)
+		}
+
+		if len(payload.RemoveTag) > 0 {
+			keysRemove := []string{}
+			for _, tag := range payload.RemoveTag {
+				// sanitize
+				keysRemove = append(keysRemove, tag.Key)
+			}
+			removePhrase := fmt.Sprintf(`- '{%s}'`, strings.Join(keysRemove, ","))
+			setPhrases = append(setPhrases, removePhrase)
+		}
+
+		setPhrase := strings.Join(setPhrases, " ")
+		q = q.Set(setPhrase)
+	}
+	return q, nil
+}
+
+func (db *PgDB) TrialsColumnForNamespace(namespace apiv1.TrialSorter_Namespace, field string) (string, error) {
+	if !safeString.MatchString(field) {
+		return "", fmt.Errorf("%s filter %s contains possible SQL injection", namespace, field)
+	}
+	switch namespace {
+	case apiv1.TrialSorter_TRIALS:
+		return field, nil
+	case apiv1.TrialSorter_HPARAMS:
+		return hParamAccessor(field), nil
+	case apiv1.TrialSorter_TRAINING_METRICS:
+		return fmt.Sprintf("training_metrics->>'%s'", field), nil
+	case apiv1.TrialSorter_VALIDATION_METRICS:
+		return fmt.Sprintf("validation_metrics->>'%s'", field), nil
+	default:
+		return field, nil
+	}
+}
+
+func conditionalForNumberRange(min *wrappers.DoubleValue, max *wrappers.DoubleValue) string {
+	if min != nil && max != nil {
+		return fmt.Sprintf("BETWEEN %f AND %f", min.Value, max.Value)
+	} else if min != nil {
+		return fmt.Sprintf(" > %f", min.Value)
+	} else if max != nil {
+		return fmt.Sprintf(" < %f", max.Value)
+	}
+	return "IS NOT NULL"
+}
+
+func conditionalForDateTimeRange(dateTime *apiv1.TimeRangeFilter) string {
+	startTime := dateTime.IntervalStart
+	endTime := dateTime.IntervalEnd
+	if startTime != nil && endTime != nil {
+		return fmt.Sprintf("BETWEEN %f AND %f", startTime, endTime)
+	} else if startTime != nil {
+		return fmt.Sprintf(" > %f", startTime)
+	} else if endTime != nil {
+		return fmt.Sprintf(" < %f", endTime)
+	}
+	return "IS NOT NULL"
+}
+
+type TrialsAugmented struct {
+	bun.BaseModel         `bun:"table:trials_augmented_view,alias:trials_augmented_view"`
+	TrialID               int32              `bun:"trial_id"`
+	State                 string             `bun:"state"`
+	Hparams               model.JSONObj      `bun:"hparams"`
+	TrainingMetrics       map[string]float64 `bun:"training_metrics,json_use_number"`
+	ValidationMetrics     map[string]float64 `bun:"validation_metrics,json_use_number"`
+	Tags                  map[string]string  `bun:"tags"`
+	StartTime             time.Time          `bun:"start_time"`
+	EndTime               time.Time          `bun:"end_time"`
+	SearcherType          string             `bun:"searcher_type"`
+	ExperimentId          int32              `bun:"experiment_id"`
+	ExperimentName        string             `bun:"experiment_name"`
+	ExperimentDescription string             `bun:"experiment_description"`
+	ExperimentLabels      []string           `bun:"experiment_labels"`
+	UserId                int32              `bun:"user_id"`
+	ProjectId             int32              `bun:"project_id"`
+	WorkspaceId           int32              `bun:"workspace_id"`
+	TotalBatches          int32              `bun:"total_batches"`
+
+	RankWithinExp int32 `bun:"n,scanonly"`
+}
+
+func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, selectAll bool) (*bun.SelectQuery, error) {
+	// FilterTrials filters trials according to filters
+
+	rankFilterApplied := filters.RankWithinExp != nil && filters.RankWithinExp.Rank != 0
+
+	if rankFilterApplied || selectAll {
+		r := filters.RankWithinExp
+
+		if r == nil {
+			r = &apiv1.TrialFilters_RankWithinExp{
+				Rank: 0,
+				Sorter: &apiv1.TrialSorter{
+					Namespace: apiv1.TrialSorter_TRIALS,
+					Field:     "trial_id",
+					OrderBy:   apiv1.OrderBy_ORDER_BY_ASC,
+				},
+			}
+		}
+
+		columnExpr, err := db.TrialsColumnForNamespace(r.Sorter.Namespace, r.Sorter.Field)
+		if err != nil {
+			return nil, fmt.Errorf("possible unsafe filters, %f", err)
+		}
+		rankExpr := fmt.Sprintf(
+			`ROW_NUMBER() OVER(PARTITION BY experiment_id ORDER BY %s  %s) as n`,
+			columnExpr,
+			QueryTrialsOrderMap[r.Sorter.OrderBy])
+
+		rankQ := Bun().NewSelect().
+			Model((*TrialsAugmented)(nil)).
+			ColumnExpr("trial_id as t_id").
+			ColumnExpr(rankExpr)
+
+		q.With("rank", rankQ).
+			Join("join rank on rank.t_id = trials_augmented_view.trial_id")
+
+		if rankFilterApplied {
+			q.Where("rank.n <= ?", r.Rank)
+		}
+		if selectAll {
+			q.ColumnExpr("trials_augmented_view.*, rank.n")
+		}
+	}
+
+	if len(filters.Tags) > 0 {
+		tagKeys := []string{}
+		for _, tag := range filters.Tags {
+			tagKeys = append(tagKeys, tag.Key)
+		}
+		// bun please ignore the first question mark,
+		// it is an operator, not a placeholder
+		q.Where("tags ?| ?", "?", pgdialect.Array(tagKeys))
+	}
+
+	if len(filters.ExperimentIds) > 0 {
+		q.Where("experiment_id IN (?)", bun.In(filters.ExperimentIds))
+	}
+	if len(filters.ProjectIds) > 0 {
+		q.Where("project_id IN (?)", bun.In(filters.ProjectIds))
+	}
+	if len(filters.WorkspaceIds) > 0 {
+		q.Where("workspace_id IN (?)", bun.In(filters.WorkspaceIds))
+	}
+
+	for _, f := range filters.ValidationMetrics {
+		if !safeString.MatchString(f.Name) {
+			return nil, fmt.Errorf("metric filter %s contains possible SQL injection", f.Name)
+		}
+		conditional := conditionalForNumberRange(f.Min, f.Max)
+		wherePhrase := fmt.Sprintf("(validation_metrics->>'%s')::float8 %s", f.Name, conditional)
+		q.Where(wherePhrase)
+	}
+
+	for _, f := range filters.TrainingMetrics {
+		if !safeString.MatchString(f.Name) {
+			return nil, fmt.Errorf("metric filter %s contains possible SQL injection", f.Name)
+		}
+		conditional := conditionalForNumberRange(f.Min, f.Max)
+		wherePhrase := fmt.Sprintf("(training_metrics->>'%s')::float8 %s", f.Name, conditional)
+		q.Where(wherePhrase)
+	}
+
+	for _, f := range filters.Hparams {
+
+		conditional := conditionalForNumberRange(f.Min, f.Max)
+		// this will fail for non-coerceable strings
+		// a request where you ask for string hps in a range is a "Bad Request"
+		wherePhrase := fmt.Sprintf("(%s)::float8 %s", hParamAccessor(f.Name), conditional)
+		q.Where(wherePhrase)
+	}
+
+	if filters.Searcher != "" {
+		q.Where("searcher_type = ?", filters.Searcher)
+	}
+	if len(filters.UserIds) > 0 {
+		q.Where("user_id IN (?)", bun.In(filters.UserIds))
+	}
+	
+	if filters.StartTime != nil {
+		conditional := conditionalForDateTimeRange(filters.StartTime)
+		q.Where("start_time ?", conditional)
+	}
+
+	if filters.EndTime != nil {
+		conditional := conditionalForDateTimeRange(filters.EndTime)
+		q.Where("end_time ?", conditional)
+	}
+
+	if len(filters.State) > 0 {
+		q.Where("state in (?)", bun.In(filters.State))
+	}
+
+
+	return q, nil
 }
