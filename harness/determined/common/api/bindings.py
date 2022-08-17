@@ -116,6 +116,25 @@ class GetTrialWorkloadsRequestFilterOption(enum.Enum):
     FILTER_OPTION_VALIDATION = "FILTER_OPTION_VALIDATION"
     FILTER_OPTION_CHECKPOINT_OR_VALIDATION = "FILTER_OPTION_CHECKPOINT_OR_VALIDATION"
 
+class PatchTrialsRequestids:
+    def __init__(
+        self,
+        *,
+        ids: "typing.Optional[typing.Sequence[int]]" = None,
+    ):
+        self.ids = ids
+
+    @classmethod
+    def from_json(cls, obj: Json) -> "PatchTrialsRequestids":
+        return cls(
+            ids=obj.get("ids", None),
+        )
+
+    def to_json(self) -> typing.Any:
+        return {
+            "ids": self.ids if self.ids is not None else None,
+        }
+
 class TrialEarlyExitExitedReason(enum.Enum):
     EXITED_REASON_UNSPECIFIED = "EXITED_REASON_UNSPECIFIED"
     EXITED_REASON_INVALID_HP = "EXITED_REASON_INVALID_HP"
@@ -822,48 +841,6 @@ class v1AwsCustomTag:
             "value": self.value,
         }
 
-class v1BulkPatchTrialsRequest:
-    def __init__(
-        self,
-        *,
-        filters: "v1TrialFilters",
-        patch: "v1TrialPatch",
-    ):
-        self.filters = filters
-        self.patch = patch
-
-    @classmethod
-    def from_json(cls, obj: Json) -> "v1BulkPatchTrialsRequest":
-        return cls(
-            filters=v1TrialFilters.from_json(obj["filters"]),
-            patch=v1TrialPatch.from_json(obj["patch"]),
-        )
-
-    def to_json(self) -> typing.Any:
-        return {
-            "filters": self.filters.to_json(),
-            "patch": self.patch.to_json(),
-        }
-
-class v1BulkPatchTrialsResponse:
-    def __init__(
-        self,
-        *,
-        rowsAffected: "typing.Optional[int]" = None,
-    ):
-        self.rowsAffected = rowsAffected
-
-    @classmethod
-    def from_json(cls, obj: Json) -> "v1BulkPatchTrialsResponse":
-        return cls(
-            rowsAffected=obj.get("rowsAffected", None),
-        )
-
-    def to_json(self) -> typing.Any:
-        return {
-            "rowsAffected": self.rowsAffected if self.rowsAffected is not None else None,
-        }
-
 class v1Checkpoint:
     def __init__(
         self,
@@ -1315,25 +1292,6 @@ class v1DeleteCheckpointsRequest:
     def to_json(self) -> typing.Any:
         return {
             "checkpointUuids": self.checkpointUuids,
-        }
-
-class v1DeleteTrialsCollectionRequest:
-    def __init__(
-        self,
-        *,
-        id: "typing.Optional[int]" = None,
-    ):
-        self.id = id
-
-    @classmethod
-    def from_json(cls, obj: Json) -> "v1DeleteTrialsCollectionRequest":
-        return cls(
-            id=obj.get("id", None),
-        )
-
-    def to_json(self) -> typing.Any:
-        return {
-            "id": self.id if self.id is not None else None,
         }
 
 class v1Device:
@@ -4384,42 +4342,46 @@ class v1PatchTrialsRequest:
     def __init__(
         self,
         *,
-        trialIds: "typing.Sequence[int]",
-        patch: "typing.Optional[v1TrialPatch]" = None,
+        patch: "v1TrialPatch",
+        filters: "typing.Optional[v1TrialFilters]" = None,
+        trial: "typing.Optional[PatchTrialsRequestids]" = None,
     ):
-        self.trialIds = trialIds
+        self.filters = filters
+        self.trial = trial
         self.patch = patch
 
     @classmethod
     def from_json(cls, obj: Json) -> "v1PatchTrialsRequest":
         return cls(
-            trialIds=obj["trialIds"],
-            patch=v1TrialPatch.from_json(obj["patch"]) if obj.get("patch", None) is not None else None,
+            filters=v1TrialFilters.from_json(obj["filters"]) if obj.get("filters", None) is not None else None,
+            trial=PatchTrialsRequestids.from_json(obj["trial"]) if obj.get("trial", None) is not None else None,
+            patch=v1TrialPatch.from_json(obj["patch"]),
         )
 
     def to_json(self) -> typing.Any:
         return {
-            "trialIds": self.trialIds,
-            "patch": self.patch.to_json() if self.patch is not None else None,
+            "filters": self.filters.to_json() if self.filters is not None else None,
+            "trial": self.trial.to_json() if self.trial is not None else None,
+            "patch": self.patch.to_json(),
         }
 
 class v1PatchTrialsResponse:
     def __init__(
         self,
         *,
-        trialIds: "typing.Optional[typing.Sequence[int]]" = None,
+        rowsAffected: "typing.Optional[int]" = None,
     ):
-        self.trialIds = trialIds
+        self.rowsAffected = rowsAffected
 
     @classmethod
     def from_json(cls, obj: Json) -> "v1PatchTrialsResponse":
         return cls(
-            trialIds=obj.get("trialIds", None),
+            rowsAffected=obj.get("rowsAffected", None),
         )
 
     def to_json(self) -> typing.Any:
         return {
-            "trialIds": self.trialIds if self.trialIds is not None else None,
+            "rowsAffected": self.rowsAffected if self.rowsAffected is not None else None,
         }
 
 class v1PatchUser:
@@ -7291,25 +7253,6 @@ def post_ArchiveWorkspace(
         return
     raise APIHttpError("post_ArchiveWorkspace", _resp)
 
-def post_BulkPatchTrials(
-    session: "client.Session",
-    *,
-    body: "v1BulkPatchTrialsRequest",
-) -> "v1BulkPatchTrialsResponse":
-    _params = None
-    _resp = session._do_request(
-        method="POST",
-        path="/api/v1/trials/patch-bulk",
-        params=_params,
-        json=body.to_json(),
-        data=None,
-        headers=None,
-        timeout=None,
-    )
-    if _resp.status_code == 200:
-        return v1BulkPatchTrialsResponse.from_json(_resp.json())
-    raise APIHttpError("post_BulkPatchTrials", _resp)
-
 def post_CancelExperiment(
     session: "client.Session",
     *,
@@ -7428,7 +7371,7 @@ def post_CreateTrialsCollection(
     _params = None
     _resp = session._do_request(
         method="POST",
-        path="/api/v1/trials/collections/create",
+        path="/api/v1/trials/collections",
         params=_params,
         json=body.to_json(),
         data=None,
@@ -7571,24 +7514,26 @@ def delete_DeleteTemplate(
         return
     raise APIHttpError("delete_DeleteTemplate", _resp)
 
-def post_DeleteTrialsCollection(
+def delete_DeleteTrialsCollection(
     session: "client.Session",
     *,
-    body: "v1DeleteTrialsCollectionRequest",
+    id: "typing.Optional[int]" = None,
 ) -> None:
-    _params = None
+    _params = {
+        "id": id,
+    }
     _resp = session._do_request(
-        method="POST",
+        method="DELETE",
         path="/api/v1/trials/collections/delete",
         params=_params,
-        json=body.to_json(),
+        json=None,
         data=None,
         headers=None,
         timeout=None,
     )
     if _resp.status_code == 200:
         return
-    raise APIHttpError("post_DeleteTrialsCollection", _resp)
+    raise APIHttpError("delete_DeleteTrialsCollection", _resp)
 
 def delete_DeleteWorkspace(
     session: "client.Session",
@@ -9260,15 +9205,15 @@ def patch_PatchProject(
         return v1PatchProjectResponse.from_json(_resp.json())
     raise APIHttpError("patch_PatchProject", _resp)
 
-def post_PatchTrials(
+def patch_PatchTrials(
     session: "client.Session",
     *,
     body: "v1PatchTrialsRequest",
 ) -> "v1PatchTrialsResponse":
     _params = None
     _resp = session._do_request(
-        method="POST",
-        path="/api/v1/trials/patch",
+        method="PATCH",
+        path="/api/v1/trials",
         params=_params,
         json=body.to_json(),
         data=None,
@@ -9277,17 +9222,17 @@ def post_PatchTrials(
     )
     if _resp.status_code == 200:
         return v1PatchTrialsResponse.from_json(_resp.json())
-    raise APIHttpError("post_PatchTrials", _resp)
+    raise APIHttpError("patch_PatchTrials", _resp)
 
-def post_PatchTrialsCollection(
+def patch_PatchTrialsCollection(
     session: "client.Session",
     *,
     body: "v1PatchTrialsCollectionRequest",
 ) -> "v1PatchTrialsCollectionResponse":
     _params = None
     _resp = session._do_request(
-        method="POST",
-        path="/api/v1/trials/collections/patch",
+        method="PATCH",
+        path="/api/v1/trials/collections",
         params=_params,
         json=body.to_json(),
         data=None,
@@ -9296,7 +9241,7 @@ def post_PatchTrialsCollection(
     )
     if _resp.status_code == 200:
         return v1PatchTrialsCollectionResponse.from_json(_resp.json())
-    raise APIHttpError("post_PatchTrialsCollection", _resp)
+    raise APIHttpError("patch_PatchTrialsCollection", _resp)
 
 def patch_PatchUser(
     session: "client.Session",

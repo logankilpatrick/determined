@@ -452,7 +452,7 @@ WHERE t.id = $1;
 type TrialsAugmented struct {
 	bun.BaseModel         `bun:"table:trials_augmented_view,alias:trials_augmented_view"`
 	TrialID               int32              `bun:"trial_id"`
-	State                 trialv1.State      `bun:"state"`
+	State                 string             `bun:"state"`
 	Hparams               model.JSONObj      `bun:"hparams"`
 	TrainingMetrics       map[string]float64 `bun:"training_metrics,json_use_number"`
 	ValidationMetrics     map[string]float64 `bun:"validation_metrics,json_use_number"`
@@ -468,6 +468,8 @@ type TrialsAugmented struct {
 	ProjectId             int32              `bun:"project_id"`
 	WorkspaceId           int32              `bun:"workspace_id"`
 	TotalBatches          int32              `bun:"total_batches"`
+	SearcherMetric        string             `bun:"searcher_metric"`
+	SearcherMetricValue   float64            `bun:"searcher_metric_value"`
 
 	RankWithinExp int32 `bun:"n,scanonly"`
 }
@@ -476,7 +478,7 @@ type TrialsAugmented struct {
 func (t *TrialsAugmented) Proto() *apiv1.AugmentedTrial {
 	return &apiv1.AugmentedTrial{
 		TrialId:               t.TrialID,
-		State:                 t.State,
+		State:                 trialv1.State(trialv1.State_value[t.State]),
 		Hparams:               protoutils.ToStruct(t.Hparams),
 		TrainingMetrics:       protoutils.ToStruct(t.TrainingMetrics),
 		ValidationMetrics:     protoutils.ToStruct(t.ValidationMetrics),
@@ -493,6 +495,8 @@ func (t *TrialsAugmented) Proto() *apiv1.AugmentedTrial {
 		WorkspaceId:           t.WorkspaceId,
 		TotalBatches:          t.TotalBatches,
 		RankWithinExp:         t.RankWithinExp,
+		SearcherMetric:        t.SearcherMetric,
+		SearcherMetricValue:   t.SearcherMetricValue,
 	}
 }
 
@@ -534,40 +538,22 @@ func hParamAccessor(hp string) string {
 	return "hparams->>" + strings.Join(nestingWithQuotes, "->>")
 }
 
-func kv(key string) string {
-	return fmt.Sprintf(`"%s":""`, key)
-}
-
 func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (*bun.UpdateQuery, error) {
 	// takes an update query and adds the Set clauses for the patch
 
 	if len(payload.AddTag) > 0 || len(payload.RemoveTag) > 0 {
-		// adding the tags phrases
-		// want to amek tags::jsonb || '{"add", ""}' || '{"these", ""} || -
-		setPhrases := []string{"tags = tags::jsonb"}
 
-		if len(payload.AddTag) > 0 {
-			itemsAdd := []string{}
-			for _, tag := range payload.AddTag {
-				// sanitize tag.Key
-				itemsAdd = append(itemsAdd, kv(tag.Key))
-			}
-			addPhrase := fmt.Sprintf(`|| '{%s}'`, strings.Join(itemsAdd, ","))
-			setPhrases = append(setPhrases, addPhrase)
+		addTags := map[string]string{}
+		for _, tag := range payload.AddTag {
+			addTags[tag.Key] = ""
 		}
 
-		if len(payload.RemoveTag) > 0 {
-			keysRemove := []string{}
-			for _, tag := range payload.RemoveTag {
-				// sanitize
-				keysRemove = append(keysRemove, tag.Key)
-			}
-			removePhrase := fmt.Sprintf(`- '{%s}'`, strings.Join(keysRemove, ","))
-			setPhrases = append(setPhrases, removePhrase)
+		removeTags := []string{}
+		for _, tag := range payload.RemoveTag {
+			removeTags = append(removeTags, tag.Key)
 		}
 
-		setPhrase := strings.Join(setPhrases, " ")
-		q = q.Set(setPhrase)
+		q = q.Set("tags = tags || ? - ?::text[]", addTags, pgdialect.Array(removeTags))
 	}
 	return q, nil
 }
@@ -605,7 +591,7 @@ func conditionalForDateTimeRange(dateTime *apiv1.TimeRangeFilter) string {
 	startTime := dateTime.IntervalStart
 	endTime := dateTime.IntervalEnd
 	if startTime != nil && endTime != nil {
-		return fmt.Sprintf("BETWEEN %f AND %f", startTime, endTime)
+		return fmt.Sprintf("BETWEEN %f AND %t", startTime, endTime)
 	} else if startTime != nil {
 		return fmt.Sprintf(" > %f", startTime)
 	} else if endTime != nil {
@@ -724,6 +710,16 @@ func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, se
 
 	if len(filters.States) > 0 {
 		q.Where("state in (?)", bun.In(filters.States))
+	}
+
+	if filters.SearcherMetric != "" {
+		q.Where("searcher_metric = ?", filters.SearcherMetric)
+	}
+
+	if filters.SearcherMetricValue != nil {
+		f := filters.SearcherMetricValue
+		conditional := conditionalForNumberRange(f.Min, f.Max)
+		q.Where("searcher_metric_value ?", conditional)
 	}
 
 	return q, nil

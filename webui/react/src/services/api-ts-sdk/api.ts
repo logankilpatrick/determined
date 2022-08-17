@@ -281,6 +281,20 @@ export enum GetTrialWorkloadsRequestFilterOption {
 }
 
 /**
+ * 
+ * @export
+ * @interface PatchTrialsRequestids
+ */
+export interface PatchTrialsRequestids {
+    /**
+     * 
+     * @type {Array<number>}
+     * @memberof PatchTrialsRequestids
+     */
+    ids?: Array<number>;
+}
+
+/**
  * `Any` contains an arbitrary serialized protocol buffer message along with a URL that describes the type of the serialized message.  Protobuf library provides support to pack/unpack Any values in the form of utility functions or additional generated methods of the Any type.  Example 1: Pack and unpack a message in C++.      Foo foo = ...;     Any any;     any.PackFrom(foo);     ...     if (any.UnpackTo(&foo)) {       ...     }  Example 2: Pack and unpack a message in Java.      Foo foo = ...;     Any any = Any.pack(foo);     ...     if (any.is(Foo.class)) {       foo = any.unpack(Foo.class);     }   Example 3: Pack and unpack a message in Python.      foo = Foo(...)     any = Any()     any.Pack(foo)     ...     if any.Is(Foo.DESCRIPTOR):       any.Unpack(foo)       ...   Example 4: Pack and unpack a message in Go       foo := &pb.Foo{...}      any, err := anypb.New(foo)      if err != nil {        ...      }      ...      foo := &pb.Foo{}      if err := any.UnmarshalTo(foo); err != nil {        ...      }  The pack methods provided by protobuf library will by default use 'type.googleapis.com/full.type.name' as the type URL and the unpack methods only use the fully qualified type name after the last '/' in the type URL, for example \"foo.bar.com/x/y.z\" will yield type name \"y.z\".   JSON ==== The JSON representation of an `Any` value uses the regular representation of the deserialized, embedded message, with an additional field `@type` which contains the type URL. Example:      package google.profile;     message Person {       string first_name = 1;       string last_name = 2;     }      {       \"@type\": \"type.googleapis.com/google.profile.Person\",       \"firstName\": <string>,       \"lastName\": <string>     }  If the embedded message type is well-known and has a custom JSON representation, that representation will be embedded adding a field `value` which holds the custom JSON in addition to the `@type` field. Example (for message [google.protobuf.Duration][]):      {       \"@type\": \"type.googleapis.com/google.protobuf.Duration\",       \"value\": \"1.212s\"     }
  * @export
  * @interface ProtobufAny
@@ -1314,40 +1328,6 @@ export interface V1AwsCustomTag {
 }
 
 /**
- * 
- * @export
- * @interface V1BulkPatchTrialsRequest
- */
-export interface V1BulkPatchTrialsRequest {
-    /**
-     * 
-     * @type {V1TrialFilters}
-     * @memberof V1BulkPatchTrialsRequest
-     */
-    filters: V1TrialFilters;
-    /**
-     * 
-     * @type {V1TrialPatch}
-     * @memberof V1BulkPatchTrialsRequest
-     */
-    patch: V1TrialPatch;
-}
-
-/**
- * 
- * @export
- * @interface V1BulkPatchTrialsResponse
- */
-export interface V1BulkPatchTrialsResponse {
-    /**
-     * 
-     * @type {number}
-     * @memberof V1BulkPatchTrialsResponse
-     */
-    rowsAffected?: number;
-}
-
-/**
  * Response to CancelExperimentRequest.
  * @export
  * @interface V1CancelExperimentResponse
@@ -1879,20 +1859,6 @@ export interface V1DeleteProjectResponse {
  * @interface V1DeleteTemplateResponse
  */
 export interface V1DeleteTemplateResponse {
-}
-
-/**
- * 
- * @export
- * @interface V1DeleteTrialsCollectionRequest
- */
-export interface V1DeleteTrialsCollectionRequest {
-    /**
-     * 
-     * @type {number}
-     * @memberof V1DeleteTrialsCollectionRequest
-     */
-    id?: number;
 }
 
 /**
@@ -4963,16 +4929,22 @@ export interface V1PatchTrialsCollectionResponse {
 export interface V1PatchTrialsRequest {
     /**
      * 
-     * @type {Array<number>}
+     * @type {V1TrialFilters}
      * @memberof V1PatchTrialsRequest
      */
-    trialIds: Array<number>;
+    filters?: V1TrialFilters;
+    /**
+     * 
+     * @type {PatchTrialsRequestids}
+     * @memberof V1PatchTrialsRequest
+     */
+    trial?: PatchTrialsRequestids;
     /**
      * 
      * @type {V1TrialPatch}
      * @memberof V1PatchTrialsRequest
      */
-    patch?: V1TrialPatch;
+    patch: V1TrialPatch;
 }
 
 /**
@@ -4983,10 +4955,10 @@ export interface V1PatchTrialsRequest {
 export interface V1PatchTrialsResponse {
     /**
      * 
-     * @type {Array<number>}
+     * @type {number}
      * @memberof V1PatchTrialsResponse
      */
-    trialIds?: Array<number>;
+    rowsAffected?: number;
 }
 
 /**
@@ -20815,45 +20787,6 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
     return {
         /**
          * 
-         * @param {V1BulkPatchTrialsRequest} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bulkPatchTrials(body: V1BulkPatchTrialsRequest, options: any = {}): FetchArgs {
-            // verify required parameter 'body' is not null or undefined
-            if (body === null || body === undefined) {
-                throw new RequiredError('body','Required parameter body was null or undefined when calling bulkPatchTrials.');
-            }
-            const localVarPath = `/api/v1/trials/patch-bulk`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerToken required
-            if (configuration && configuration.apiKey) {
-                const localVarApiKeyValue = typeof configuration.apiKey === 'function'
-					? configuration.apiKey("Authorization")
-					: configuration.apiKey;
-                localVarHeaderParameter["Authorization"] = localVarApiKeyValue;
-            }
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"V1BulkPatchTrialsRequest" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
          * @param {V1CreateTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -20863,7 +20796,7 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
             if (body === null || body === undefined) {
                 throw new RequiredError('body','Required parameter body was null or undefined when calling createTrialsCollection.');
             }
-            const localVarPath = `/api/v1/trials/collections/create`;
+            const localVarPath = `/api/v1/trials/collections`;
             const localVarUrlObj = url.parse(localVarPath, true);
             const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
             const localVarHeaderParameter = {} as any;
@@ -20893,18 +20826,14 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
-         * @param {V1DeleteTrialsCollectionRequest} body 
+         * @param {number} [id] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTrialsCollection(body: V1DeleteTrialsCollectionRequest, options: any = {}): FetchArgs {
-            // verify required parameter 'body' is not null or undefined
-            if (body === null || body === undefined) {
-                throw new RequiredError('body','Required parameter body was null or undefined when calling deleteTrialsCollection.');
-            }
+        deleteTrialsCollection(id?: number, options: any = {}): FetchArgs {
             const localVarPath = `/api/v1/trials/collections/delete`;
             const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarRequestOptions = Object.assign({ method: 'DELETE' }, options);
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -20916,14 +20845,14 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
                 localVarHeaderParameter["Authorization"] = localVarApiKeyValue;
             }
 
-            localVarHeaderParameter['Content-Type'] = 'application/json';
+            if (id !== undefined) {
+                localVarQueryParameter['id'] = id;
+            }
 
             localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
             // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
             delete localVarUrlObj.search;
             localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"V1DeleteTrialsCollectionRequest" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
 
             return {
                 url: url.format(localVarUrlObj),
@@ -21015,9 +20944,9 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
             if (body === null || body === undefined) {
                 throw new RequiredError('body','Required parameter body was null or undefined when calling patchTrials.');
             }
-            const localVarPath = `/api/v1/trials/patch`;
+            const localVarPath = `/api/v1/trials`;
             const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarRequestOptions = Object.assign({ method: 'PATCH' }, options);
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -21054,9 +20983,9 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
             if (body === null || body === undefined) {
                 throw new RequiredError('body','Required parameter body was null or undefined when calling patchTrialsCollection.');
             }
-            const localVarPath = `/api/v1/trials/collections/patch`;
+            const localVarPath = `/api/v1/trials/collections`;
             const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
+            const localVarRequestOptions = Object.assign({ method: 'PATCH' }, options);
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
 
@@ -21132,24 +21061,6 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {V1BulkPatchTrialsRequest} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bulkPatchTrials(body: V1BulkPatchTrialsRequest, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<V1BulkPatchTrialsResponse> {
-            const localVarFetchArgs = TrialComparisonApiFetchParamCreator(configuration).bulkPatchTrials(body, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response.json();
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
          * @param {V1CreateTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21168,12 +21079,12 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {V1DeleteTrialsCollectionRequest} body 
+         * @param {number} [id] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTrialsCollection(body: V1DeleteTrialsCollectionRequest, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<V1DeleteTrialsCollectionResponse> {
-            const localVarFetchArgs = TrialComparisonApiFetchParamCreator(configuration).deleteTrialsCollection(body, options);
+        deleteTrialsCollection(id?: number, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<V1DeleteTrialsCollectionResponse> {
+            const localVarFetchArgs = TrialComparisonApiFetchParamCreator(configuration).deleteTrialsCollection(id, options);
             return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
                 return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
                     if (response.status >= 200 && response.status < 300) {
@@ -21285,15 +21196,6 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
     return {
         /**
          * 
-         * @param {V1BulkPatchTrialsRequest} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        bulkPatchTrials(body: V1BulkPatchTrialsRequest, options?: any) {
-            return TrialComparisonApiFp(configuration).bulkPatchTrials(body, options)(fetch, basePath);
-        },
-        /**
-         * 
          * @param {V1CreateTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21303,12 +21205,12 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {V1DeleteTrialsCollectionRequest} body 
+         * @param {number} [id] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        deleteTrialsCollection(body: V1DeleteTrialsCollectionRequest, options?: any) {
-            return TrialComparisonApiFp(configuration).deleteTrialsCollection(body, options)(fetch, basePath);
+        deleteTrialsCollection(id?: number, options?: any) {
+            return TrialComparisonApiFp(configuration).deleteTrialsCollection(id, options)(fetch, basePath);
         },
         /**
          * 
@@ -21367,17 +21269,6 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
 export class TrialComparisonApi extends BaseAPI {
     /**
      * 
-     * @param {V1BulkPatchTrialsRequest} body 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TrialComparisonApi
-     */
-    public bulkPatchTrials(body: V1BulkPatchTrialsRequest, options?: any) {
-        return TrialComparisonApiFp(this.configuration).bulkPatchTrials(body, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
      * @param {V1CreateTrialsCollectionRequest} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -21389,13 +21280,13 @@ export class TrialComparisonApi extends BaseAPI {
 
     /**
      * 
-     * @param {V1DeleteTrialsCollectionRequest} body 
+     * @param {number} [id] 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TrialComparisonApi
      */
-    public deleteTrialsCollection(body: V1DeleteTrialsCollectionRequest, options?: any) {
-        return TrialComparisonApiFp(this.configuration).deleteTrialsCollection(body, options)(this.fetch, this.basePath);
+    public deleteTrialsCollection(id?: number, options?: any) {
+        return TrialComparisonApiFp(this.configuration).deleteTrialsCollection(id, options)(this.fetch, this.basePath);
     }
 
     /**

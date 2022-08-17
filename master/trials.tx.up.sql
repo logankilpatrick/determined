@@ -29,6 +29,12 @@ CREATE AGGREGATE jsonb_collect(jsonb) (
   INITCOND = '{}'
 );
 
+
+-- aggregations should be mostly redundant.the only way they 
+-- would get applied is when there are multiple trial_run_ids for a single 
+-- (trial_id, total_batches) on steps or validations. in which case,
+-- which trial_run_id is it appropriate to take the metrics from?
+-- there have been situations where they differ.
 CREATE OR REPLACE VIEW public.trials_augmented_view AS 
   WITH b AS (
     select trial_id, max(total_batches) total_batches from steps group by trial_id
@@ -52,7 +58,9 @@ CREATE OR REPLACE VIEW public.trials_augmented_view AS
       max(e.project_id) AS project_id,
       max(p.workspace_id) AS workspace_id,
       -- temporary
-      max(b.total_batches) as total_batches
+      max(b.total_batches) as total_batches,
+      max(e.config->'searcher'->>'metric') AS searcher_metric,
+      max(v.metrics->'validation_metrics'->>(e.config->'searcher'->>'metric')) AS searcher_metric_value
   FROM trials t
   LEFT JOIN experiments e ON t.experiment_id = e.id
   LEFT JOIN projects p ON e.project_id = p.id

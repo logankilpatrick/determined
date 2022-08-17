@@ -466,72 +466,43 @@ func (a *apiServer) PatchTrials(ctx context.Context, req *apiv1.PatchTrialsReque
 	}
 
 	// check user is authorized for modifying project? after RBAC?
-	// in that case we will want to make sure all trials belong to same project
-	// right now only option is adding/removing tags, pretty low stakes
-
-	if len(req.TrialIds) == 0 {
-		return nil, status.Error(codes.InvalidArgument, "no trial ids provided to patch")
-	}
-
-	err = checkTrialPatchEmpty(req.Patch)
-	if err != nil {
-		return nil, fmt.Errorf("couldnt patch trials %w", err)
-	}
-
-	q := db.Bun().NewUpdate().Table("trials")
-	q, err = a.m.db.ApplyTrialPatch(q, req.Patch)
-	if err != nil {
-		return nil, fmt.Errorf("couldnt patch trials %w", err)
-	}
-
-	var affectedTrialIds []int32
-	_, err = q.Where("id IN (?)", bun.In(req.TrialIds)).
-		Returning("id").
-		Exec(context.TODO(), &affectedTrialIds)
-
-	if err != nil {
-		return nil, fmt.Errorf("couldnt patch trials %w", err)
-	}
-
-	resp := &apiv1.PatchTrialsResponse{TrialIds: affectedTrialIds}
-	return resp, nil
-}
-
-func (a *apiServer) BulkPatchTrials(ctx context.Context, req *apiv1.BulkPatchTrialsRequest) (*apiv1.BulkPatchTrialsResponse, error) {
-	_, _, err := grpcutil.GetUser(ctx, a.m.db, &a.m.config.InternalConfig.ExternalSessions)
-	if err != nil {
-		return nil, fmt.Errorf("couldnt patch trials %w", err)
-	}
-
-	// check user is authorized for modifying project? after RBAC?
 	// in that case we will want to make sure len(req.Filters.ProjectID) == 1
 	// right now only option is adding/removing tags, pretty low stakes
 
-	err = checkTrialFiltersEmpty(req.Filters)
-	if err != nil {
-		return nil, fmt.Errorf("couldnt bulk patch trials %w", err)
-	}
-
-	err = checkTrialPatchEmpty(req.Patch)
-	if err != nil {
-		return nil, fmt.Errorf("couldnt bulk patch trials %w", err)
-	}
-
 	q := db.Bun().NewUpdate().Table("trials")
-	subQ := db.Bun().NewSelect().Table("trials_augmented_view").Column("trial_id")
-
-	subQ, err = a.m.db.FilterTrials(subQ, req.Filters, false)
-	if err != nil {
-		return nil, fmt.Errorf("couldnt bulk patch trials %w", err)
-	}
-
 	q, err = a.m.db.ApplyTrialPatch(q, req.Patch)
+
 	if err != nil {
-		return nil, fmt.Errorf("couldnt bulk patch trials %w", err)
+		return nil, fmt.Errorf("error constructing set clause for trial patch %w", err)
 	}
 
-	res, err := q.Where("id IN (?)", subQ).
-		Exec(context.TODO())
+	switch targetType := req.Target.(type) {
+	case *apiv1.PatchTrialsRequest_Filters:
+		filters := req.GetFilters()
+		err = checkTrialFiltersEmpty(filters)
+		if err != nil {
+			return nil, fmt.Errorf("empty trials provided for patch %s", filters)
+		}
+
+		subQ := db.Bun().NewSelect().Table("trials_augmented_view").Column("trial_id")
+		subQ, err = a.m.db.FilterTrials(subQ, filters, false)
+		if err != nil {
+			return nil, fmt.Errorf("couldnt bulk patch trials %w", err)
+		}
+		q.Where("id IN (?)", subQ)
+
+	case *apiv1.PatchTrialsRequest_Trial:
+		trialIds := req.GetTrial().Ids
+		if len(trialIds) == 0 {
+			return nil, fmt.Errorf("no trial ids provided to patch")
+		}
+		q.Where("id IN (?)", bun.In(trialIds))
+	default:
+		return nil, fmt.Errorf("bad target for trials patch %f", targetType)
+
+	}
+
+	res, err := q.Exec(context.TODO())
 	if err != nil {
 		return nil, fmt.Errorf("couldnt bulk patch trials %w", err)
 	}
@@ -539,9 +510,10 @@ func (a *apiServer) BulkPatchTrials(ctx context.Context, req *apiv1.BulkPatchTri
 	rowsAffected, err := res.RowsAffected()
 	if err != nil {
 		log.Warn("unable to determined number of rows affected")
+		rowsAffected = 0
 	}
 
-	return &apiv1.BulkPatchTrialsResponse{RowsAffected: int32(rowsAffected)}, nil
+	return &apiv1.PatchTrialsResponse{RowsAffected: int32(rowsAffected)}, nil
 }
 
 func (a *apiServer) GetTrialsCollections(
@@ -644,6 +616,10 @@ func (a *apiServer) PatchTrialsCollection(
 	}
 
 	if req.Filters != nil {
+		q.Column("filters")
+	}
+
+	if req.Sorter != nil {
 		q.Column("filters")
 	}
 

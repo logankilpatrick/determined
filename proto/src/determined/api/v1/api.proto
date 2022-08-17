@@ -521,20 +521,10 @@ service Determined {
     };
   }
 
-  rpc BulkPatchTrials(BulkPatchTrialsRequest)
-      returns (BulkPatchTrialsResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/trials/patch-bulk"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-      tags: [ "Trial Comparison" ]
-    };
-  }
 
   rpc PatchTrials(PatchTrialsRequest) returns (PatchTrialsResponse) {
     option (google.api.http) = {
-      post: "/api/v1/trials/patch"
+      patch: "/api/v1/trials"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
@@ -555,7 +545,7 @@ service Determined {
   rpc CreateTrialsCollection(CreateTrialsCollectionRequest)
       returns (CreateTrialsCollectionResponse) {
     option (google.api.http) = {
-      post: "/api/v1/trials/collections/create"
+      post: "/api/v1/trials/collections"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
@@ -566,7 +556,7 @@ service Determined {
   rpc PatchTrialsCollection(PatchTrialsCollectionRequest)
       returns (PatchTrialsCollectionResponse) {
     option (google.api.http) = {
-      post: "/api/v1/trials/collections/patch"
+      patch: "/api/v1/trials/collections"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
@@ -577,23 +567,13 @@ service Determined {
   rpc DeleteTrialsCollection(DeleteTrialsCollectionRequest)
       returns (DeleteTrialsCollectionResponse) {
     option (google.api.http) = {
-      post: "/api/v1/trials/collections/delete"
-      body: "*"
+      delete: "/api/v1/trials/collections/delete"
     };
     option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
       tags: [ "Trial Comparison" ]
     };
   }
 
-  rpc GetTrialTags(GetTrialTagsRequest) returns (GetTrialTagsResponse) {
-    option (google.api.http) = {
-      post: "/api/v1/trials/tags"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_swagger.options.openapiv2_operation) = {
-      tags: [ "Trial Comparison" ]
-    };
-  }
 
   // Get a single trial.
   rpc GetTrial(GetTrialRequest) returns (GetTrialResponse) {
