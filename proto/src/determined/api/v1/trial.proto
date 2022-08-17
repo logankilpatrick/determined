@@ -241,7 +241,7 @@ message QueryTrialsResponse {
 // Specifies whether a tag should be added or removed
 message TrialPatch {
   // Specifies that a tag will be added
-  repeated TrialTag add_tag    = 1;
+  repeated TrialTag add_tag = 1;
   // Specifies that a tag will be removed
   repeated TrialTag remove_tag = 2;
 }
