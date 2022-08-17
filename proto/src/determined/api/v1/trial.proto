@@ -84,13 +84,13 @@ message TrialSorter {
   // to access in the db
   enum Namespace {
     // Namespace for columns in the trials table
-    TRIALS = 0;
+    NAMESPACE_TRIALS_UNSPECIFIED = 0;
     // Namespace corrspondings to trials->hparams
-    HPARAMS = 1;
+    NAMESPACE_HPARAMS = 1;
     // Namespace corrspondings to steps->avg_metrics
-    TRAINING_METRICS = 2;
+    NAMESPACE_TRAINING_METRICS = 2;
     // Namespace corrspondings to validations->validation_metrics
-    VALIDATION_METRICS = 3;
+    NAMESPACE_VALIDATION_METRICS = 3;
   }
   // The namespace for the sort field.
   Namespace namespace = 1;
@@ -254,6 +254,7 @@ message PatchTrialsRequest {
   };
   // struct for the ids parameter.
   message Ids {
+    // List of Trial ids
     repeated int32 ids = 1;
   }
   // the possible patch targets.
