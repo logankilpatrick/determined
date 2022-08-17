@@ -23,6 +23,8 @@ import (
 	"github.com/determined-ai/determined/proto/pkg/trialv1"
 )
 
+const notNull = "IS NOT NULL"
+
 // AddTrial adds the trial to the database and sets its ID.
 func (db *PgDB) AddTrial(trial *model.Trial) error {
 	if trial.ID != 0 {
@@ -449,6 +451,7 @@ WHERE t.id = $1;
 	return errors.Wrapf(err, "error updating best validation for trial %d", id)
 }
 
+// Augmented Trial
 type TrialsAugmented struct {
 	bun.BaseModel         `bun:"table:trials_augmented_view,alias:trials_augmented_view"`
 	TrialID               int32              `bun:"trial_id"`
@@ -500,6 +503,7 @@ func (t *TrialsAugmented) Proto() *apiv1.AugmentedTrial {
 	}
 }
 
+// Collection of Trials matching a set of TrialFilters
 type TrialsCollection struct {
 	ID        int32               `bun:"id,pk,autoincrement"`
 	UserId    int32               `bun:"user_id"`
@@ -520,6 +524,7 @@ func (tc *TrialsCollection) Proto() *apiv1.TrialsCollection {
 	}
 }
 
+// Map of OrderBy choices to Sort Choices
 var QueryTrialsOrderMap = map[apiv1.OrderBy]SortDirection{
 	apiv1.OrderBy_ORDER_BY_UNSPECIFIED: SortDirectionAsc,
 	apiv1.OrderBy_ORDER_BY_ASC:         SortDirectionAsc,
@@ -538,6 +543,7 @@ func hParamAccessor(hp string) string {
 	return "hparams->>" + strings.Join(nestingWithQuotes, "->>")
 }
 
+// Apply a patch operation to a set of Trials
 func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (*bun.UpdateQuery, error) {
 	// takes an update query and adds the Set clauses for the patch
 
@@ -577,27 +583,31 @@ func (db *PgDB) TrialsColumnForNamespace(namespace apiv1.TrialSorter_Namespace, 
 }
 
 func conditionalForNumberRange(min *wrappers.DoubleValue, max *wrappers.DoubleValue) string {
-	if min != nil && max != nil {
+	switch {
+	case min != nil && max != nil:
 		return fmt.Sprintf("BETWEEN %f AND %f", min.Value, max.Value)
-	} else if min != nil {
+	case min != nil :
 		return fmt.Sprintf(" > %f", min.Value)
-	} else if max != nil {
+	case max != nil :
 		return fmt.Sprintf(" < %f", max.Value)
+	default: 
+	return notNull
 	}
-	return "IS NOT NULL"
 }
 
 func conditionalForDateTimeRange(dateTime *apiv1.TimeRangeFilter) string {
 	startTime := dateTime.IntervalStart
 	endTime := dateTime.IntervalEnd
-	if startTime != nil && endTime != nil {
+	switch {
+	case startTime != nil && endTime != nil:
 		return fmt.Sprintf("BETWEEN %f AND %t", startTime, endTime)
-	} else if startTime != nil {
+	case startTime != nil:
 		return fmt.Sprintf(" > %f", startTime)
-	} else if endTime != nil {
+	case endTime != nil:
 		return fmt.Sprintf(" < %f", endTime)
+	default:
+		return notNull
 	}
-	return "IS NOT NULL"
 }
 
 func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, selectAll bool) (*bun.SelectQuery, error) {

@@ -392,19 +392,11 @@ func checkTrialFiltersEmpty(f *apiv1.TrialFilters) error {
 		len(f.States) +
 		len(f.SearcherMetric)
 
-	if filtersLength == 0 && f.RankWithinExp == nil && f.StartTime == nil && f.EndTime == nil && f.SearcherMetricValue == nil {
-		return emptyFilters
-	}
-	return nil
-}
-
-func checkTrialPatchEmpty(p *apiv1.TrialPatch) error {
-	if p == nil || (len(p.AddTag) == 0 && len(p.RemoveTag) == 0) {
-		fmt.Println("trialpatch", p.AddTag)
-		return status.Errorf(
-			codes.InvalidArgument,
-			"patch payload empty",
-		)
+	if filtersLength == 0 && 
+		f.RankWithinExp == nil &&
+	 	f.StartTime == nil && f.EndTime == nil && 
+	 	f.SearcherMetricValue == nil {
+			return emptyFilters
 	}
 	return nil
 }
