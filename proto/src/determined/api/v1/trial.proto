@@ -192,9 +192,9 @@ message AugmentedTrial {
   determined.trial.v1.State state = 2;
   // The trials hyperparameters.
 
+  // The hyperparameters for the trial
   google.protobuf.Struct hparams = 3;
   // The training metrics for the trial.
-
   google.protobuf.Struct training_metrics = 4;
   // The validation metrics for the trial.
   google.protobuf.Struct validation_metrics = 5;
@@ -240,7 +240,9 @@ message QueryTrialsResponse {
 
 // Specifies whether a tag should be added or removed
 message TrialPatch {
+  // Specifies that a tag will be added
   repeated TrialTag add_tag    = 1;
+  // Specifies that a tag will be removed
   repeated TrialTag remove_tag = 2;
 }
 
@@ -251,7 +253,7 @@ message PatchTrialsRequest {
     json_schema: { required: [ "target", "patch" ] }
   };
   // struct for the ids parameter.
-  message ids {
+  message Ids {
     repeated int32 ids = 1;
   }
   // the possible patch targets.
@@ -259,7 +261,7 @@ message PatchTrialsRequest {
     // patch that targets trials matching filters.
     TrialFilters filters = 2;
     // Patch that targets a list of trials.
-    ids trial = 3;
+    Ids trial = 3;
   }
   // The patch to be applied to the trials
   TrialPatch patch = 4;
@@ -322,6 +324,7 @@ message CreateTrialsCollectionRequest {
 
 //  Response message to CreateTrialCollection
 message CreateTrialsCollectionResponse {
+  // The collection of trials
   TrialsCollection collection = 1;
 }
 
@@ -348,6 +351,7 @@ message PatchTrialsCollectionResponse {
 
 // Request message to PatchTrialsCollection
 message DeleteTrialsCollectionRequest {
+  // The id for the TrialsCollection
   int32 id = 1;
 }
 // Empty response for DeleteTrialsCollection
