@@ -182,12 +182,12 @@ export enum Determinedtaskv1State {
 }
 
 /**
- * - STATE_ACTIVE: The trial is in an active state.  - STATE_PAUSED: The trial is in a paused state  - STATE_STOPPING_CANCELED: The trial is canceled and is shutting down.  - STATE_STOPPING_KILLED: The trial is killed and is shutting down.  - STATE_STOPPING_COMPLETED: The trial is completed and is shutting down.  - STATE_STOPPING_ERROR: The trial is errored and is shutting down.  - STATE_CANCELED: The trial is canceled and is shut down.  - STATE_COMPLETED: The trial is completed and is shut down.  - STATE_ERROR: The trial is errored and is shut down.
+ * - STATE_ACTIVE_UNSPECIFIED: The trial is in an active state.  - STATE_PAUSED: The trial is in a paused state  - STATE_STOPPING_CANCELED: The trial is canceled and is shutting down.  - STATE_STOPPING_KILLED: The trial is killed and is shutting down.  - STATE_STOPPING_COMPLETED: The trial is completed and is shutting down.  - STATE_STOPPING_ERROR: The trial is errored and is shutting down.  - STATE_CANCELED: The trial is canceled and is shut down.  - STATE_COMPLETED: The trial is completed and is shut down.  - STATE_ERROR: The trial is errored and is shut down.
  * @export
  * @enum {string}
  */
 export enum Determinedtrialv1State {
-    ACTIVE = <any> 'STATE_ACTIVE',
+    ACTIVEUNSPECIFIED = <any> 'STATE_ACTIVE_UNSPECIFIED',
     PAUSED = <any> 'STATE_PAUSED',
     STOPPINGCANCELED = <any> 'STATE_STOPPING_CANCELED',
     STOPPINGKILLED = <any> 'STATE_STOPPING_KILLED',
@@ -281,15 +281,15 @@ export enum GetTrialWorkloadsRequestFilterOption {
 }
 
 /**
- * 
+ * struct for the ids parameter.
  * @export
- * @interface PatchTrialsRequestids
+ * @interface PatchTrialsRequestIds
  */
-export interface PatchTrialsRequestids {
+export interface PatchTrialsRequestIds {
     /**
      * 
      * @type {Array<number>}
-     * @memberof PatchTrialsRequestids
+     * @memberof PatchTrialsRequestIds
      */
     ids?: Array<number>;
 }
@@ -718,15 +718,15 @@ export enum TrialProfilerMetricLabelsProfilerMetricType {
 }
 
 /**
- * 
+ * - NAMESPACE_TRIALS_UNSPECIFIED: Namespace for columns in the trials table  - NAMESPACE_HPARAMS: Namespace corrspondings to trials->hparams  - NAMESPACE_TRAINING_METRICS: Namespace corrspondings to steps->avg_metrics  - NAMESPACE_VALIDATION_METRICS: Namespace corrspondings to validations->validation_metrics
  * @export
  * @enum {string}
  */
 export enum TrialSorterNamespace {
-    TRIALS = <any> 'TRIALS',
-    HPARAMS = <any> 'HPARAMS',
-    TRAININGMETRICS = <any> 'TRAINING_METRICS',
-    VALIDATIONMETRICS = <any> 'VALIDATION_METRICS'
+    TRIALSUNSPECIFIED = <any> 'NAMESPACE_TRIALS_UNSPECIFIED',
+    HPARAMS = <any> 'NAMESPACE_HPARAMS',
+    TRAININGMETRICS = <any> 'NAMESPACE_TRAINING_METRICS',
+    VALIDATIONMETRICS = <any> 'NAMESPACE_VALIDATION_METRICS'
 }
 
 /**
@@ -1198,13 +1198,13 @@ export interface V1ArchiveWorkspaceResponse {
  */
 export interface V1AugmentedTrial {
     /**
-     * 
+     * The id of the trial.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     trialId: number;
     /**
-     * 
+     * The state of the trial.
      * @type {Determinedtrialv1State}
      * @memberof V1AugmentedTrial
      */
@@ -1216,95 +1216,107 @@ export interface V1AugmentedTrial {
      */
     hparams: any;
     /**
-     * 
+     * The training metrics for the trial.
      * @type {any}
      * @memberof V1AugmentedTrial
      */
     trainingMetrics: any;
     /**
-     * 
+     * The validation metrics for the trial.
      * @type {any}
      * @memberof V1AugmentedTrial
      */
     validationMetrics: any;
     /**
-     * 
+     * The tags for the trial.
      * @type {any}
      * @memberof V1AugmentedTrial
      */
     tags: any;
     /**
-     * 
+     * The start time for the trial.
      * @type {Date}
      * @memberof V1AugmentedTrial
      */
     startTime: Date;
     /**
-     * 
+     * The end time for the trial.
      * @type {Date}
      * @memberof V1AugmentedTrial
      */
     endTime: Date;
     /**
-     * 
+     * The searcher type for the trial.
      * @type {string}
      * @memberof V1AugmentedTrial
      */
     searcherType: string;
     /**
-     * 
+     * The trials rank within the experiment, according to the sorter that is provided.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     rankWithinExp?: number;
     /**
-     * 
+     * The experiment id for the trial.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     experimentId: number;
     /**
-     * 
+     * The experiment name for the trial.
      * @type {string}
      * @memberof V1AugmentedTrial
      */
     experimentName: string;
     /**
-     * 
+     * The experiment description for the trial.
      * @type {string}
      * @memberof V1AugmentedTrial
      */
     experimentDescription: string;
     /**
-     * 
+     * The labels for the experiment corresponding to the trial.
      * @type {Array<string>}
      * @memberof V1AugmentedTrial
      */
     experimentLabels: Array<string>;
     /**
-     * 
+     * The id of the user who created the experiment corresponding to the trial.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     userId: number;
     /**
-     * 
+     * The project id for the trial.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     projectId: number;
     /**
-     * 
+     * The workspace id for the trial.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     workspaceId: number;
     /**
-     * 
+     * The total number of batches in the trial.
      * @type {number}
      * @memberof V1AugmentedTrial
      */
     totalBatches: number;
+    /**
+     * The name of the trials searcher metric.
+     * @type {string}
+     * @memberof V1AugmentedTrial
+     */
+    searcherMetric?: string;
+    /**
+     * The value for the trials searcher metric.
+     * @type {number}
+     * @memberof V1AugmentedTrial
+     */
+    searcherMetricValue?: number;
 }
 
 /**
@@ -1726,25 +1738,25 @@ export interface V1CreateExperimentResponse {
  */
 export interface V1CreateTrialsCollectionRequest {
     /**
-     * 
+     * The name for the collection.
      * @type {string}
      * @memberof V1CreateTrialsCollectionRequest
      */
     name: string;
     /**
-     * 
+     * The project id for the collection.
      * @type {number}
      * @memberof V1CreateTrialsCollectionRequest
      */
     projectId: number;
     /**
-     * 
+     * The filters for the collection.
      * @type {V1TrialFilters}
      * @memberof V1CreateTrialsCollectionRequest
      */
     filters: V1TrialFilters;
     /**
-     * 
+     * The sorter for the collection.
      * @type {V1TrialSorter}
      * @memberof V1CreateTrialsCollectionRequest
      */
@@ -3350,34 +3362,6 @@ export interface V1GetTrialResponse {
 }
 
 /**
- * 
- * @export
- * @interface V1GetTrialTagsRequest
- */
-export interface V1GetTrialTagsRequest {
-    /**
-     * 
-     * @type {V1TrialFilters}
-     * @memberof V1GetTrialTagsRequest
-     */
-    filters?: V1TrialFilters;
-}
-
-/**
- * 
- * @export
- * @interface V1GetTrialTagsResponse
- */
-export interface V1GetTrialTagsResponse {
-    /**
-     * 
-     * @type {Array<string>}
-     * @memberof V1GetTrialTagsResponse
-     */
-    tags?: Array<string>;
-}
-
-/**
  * Response to GetTrialWorkloadsRequest.
  * @export
  * @interface V1GetTrialWorkloadsResponse
@@ -3404,7 +3388,7 @@ export interface V1GetTrialWorkloadsResponse {
  */
 export interface V1GetTrialsCollectionsResponse {
     /**
-     * 
+     * The collections belonging to that project.
      * @type {Array<V1TrialsCollection>}
      * @memberof V1GetTrialsCollectionsResponse
      */
@@ -4585,19 +4569,19 @@ export interface V1Notebook {
  */
 export interface V1NumberRangeFilter {
     /**
-     * 
+     * The name of the field on which the filters is applied.
      * @type {string}
      * @memberof V1NumberRangeFilter
      */
-    name: string;
+    name?: string;
     /**
-     * 
+     * Minimum value for the field. optional.
      * @type {number}
      * @memberof V1NumberRangeFilter
      */
     min?: number;
     /**
-     * 
+     * Maximum value for the field. optional.
      * @type {number}
      * @memberof V1NumberRangeFilter
      */
@@ -4876,31 +4860,25 @@ export interface V1PatchProjectResponse {
  */
 export interface V1PatchTrialsCollectionRequest {
     /**
-     * 
+     * The ID of the collection to be patched.
      * @type {number}
      * @memberof V1PatchTrialsCollectionRequest
      */
     id: number;
     /**
-     * 
-     * @type {number}
-     * @memberof V1PatchTrialsCollectionRequest
-     */
-    projectId?: number;
-    /**
-     * 
+     * The new name for the collection.
      * @type {string}
      * @memberof V1PatchTrialsCollectionRequest
      */
     name?: string;
     /**
-     * 
+     * The new filters for the collection.
      * @type {V1TrialFilters}
      * @memberof V1PatchTrialsCollectionRequest
      */
     filters?: V1TrialFilters;
     /**
-     * 
+     * The new sorter for the collection.
      * @type {V1TrialSorter}
      * @memberof V1PatchTrialsCollectionRequest
      */
@@ -4914,7 +4892,7 @@ export interface V1PatchTrialsCollectionRequest {
  */
 export interface V1PatchTrialsCollectionResponse {
     /**
-     * 
+     * The patched collection.
      * @type {V1TrialsCollection}
      * @memberof V1PatchTrialsCollectionResponse
      */
@@ -4922,23 +4900,23 @@ export interface V1PatchTrialsCollectionResponse {
 }
 
 /**
- * 
+ * Request to patch trials. Can either specify a set of filters or set of trial ids as the patch target.
  * @export
  * @interface V1PatchTrialsRequest
  */
 export interface V1PatchTrialsRequest {
     /**
-     * 
+     * patch that targets trials matching filters.
      * @type {V1TrialFilters}
      * @memberof V1PatchTrialsRequest
      */
     filters?: V1TrialFilters;
     /**
-     * 
-     * @type {PatchTrialsRequestids}
+     * Patch that targets a list of trials.
+     * @type {PatchTrialsRequestIds}
      * @memberof V1PatchTrialsRequest
      */
-    trial?: PatchTrialsRequestids;
+    trial?: PatchTrialsRequestIds;
     /**
      * 
      * @type {V1TrialPatch}
@@ -4954,7 +4932,7 @@ export interface V1PatchTrialsRequest {
  */
 export interface V1PatchTrialsResponse {
     /**
-     * 
+     * The number of trials that were patched.
      * @type {number}
      * @memberof V1PatchTrialsResponse
      */
@@ -5540,7 +5518,7 @@ export interface V1PutTemplateResponse {
  */
 export interface V1QueryTrialsRequest {
     /**
-     * 
+     * The filters to be appled to the trial.
      * @type {V1TrialFilters}
      * @memberof V1QueryTrialsRequest
      */
@@ -5552,7 +5530,7 @@ export interface V1QueryTrialsRequest {
      */
     sorter?: V1TrialSorter;
     /**
-     * 
+     * Offset for pagination.
      * @type {number}
      * @memberof V1QueryTrialsRequest
      */
@@ -5572,7 +5550,7 @@ export interface V1QueryTrialsRequest {
  */
 export interface V1QueryTrialsResponse {
     /**
-     * 
+     * The trials matching the query, with extra data.
      * @type {Array<V1AugmentedTrial>}
      * @memberof V1QueryTrialsResponse
      */
@@ -7022,19 +7000,19 @@ export interface V1Tensorboard {
 }
 
 /**
- * 
+ * A filter structure for filtering times within a given interval.
  * @export
  * @interface V1TimeRangeFilter
  */
 export interface V1TimeRangeFilter {
     /**
-     * 
+     * The start of the interval. optional.
      * @type {Date}
      * @memberof V1TimeRangeFilter
      */
     intervalStart?: Date;
     /**
-     * 
+     * The end of the interval. optional.
      * @type {Date}
      * @memberof V1TimeRangeFilter
      */
@@ -7056,7 +7034,7 @@ export interface V1TrialEarlyExit {
 }
 
 /**
- * 
+ * Filters to be applied to trials. Can be used to query, patch, and create dynamic collections of trials.
  * @export
  * @interface V1TrialFilters
  */
@@ -7068,13 +7046,13 @@ export interface V1TrialFilters {
      */
     experimentIds?: Array<number>;
     /**
-     * Filter trials by their corresponding experiment ids.
+     * Filter trials by their corresponding project ids.
      * @type {Array<number>}
      * @memberof V1TrialFilters
      */
     projectIds?: Array<number>;
     /**
-     * Filter trials by their corresponding experiment ids.
+     * Filter trials by their corresponding workspace ids.
      * @type {Array<number>}
      * @memberof V1TrialFilters
      */
@@ -7092,7 +7070,7 @@ export interface V1TrialFilters {
      */
     trainingMetrics?: Array<V1NumberRangeFilter>;
     /**
-     * Filter trials to those containing ALL hyperparameters within the indicated ranges.
+     * Filter trials to those containing ALL hyperparameters within the indicated ranges. Nested hparams are specified with dots.
      * @type {Array<V1NumberRangeFilter>}
      * @memberof V1TrialFilters
      */
@@ -7134,11 +7112,23 @@ export interface V1TrialFilters {
      */
     endTime?: V1TimeRangeFilter;
     /**
-     * Filter trials to those with the given state.
-     * @type {Array<Determinedexperimentv1State>}
+     * Filter trials to those with any of the given states.
+     * @type {Array<Determinedtrialv1State>}
      * @memberof V1TrialFilters
      */
-    states?: Array<Determinedexperimentv1State>;
+    states?: Array<Determinedtrialv1State>;
+    /**
+     * Filter trials to those with the given searcher metric.
+     * @type {string}
+     * @memberof V1TrialFilters
+     */
+    searcherMetric?: string;
+    /**
+     * 
+     * @type {V1NumberRangeFilter}
+     * @memberof V1TrialFilters
+     */
+    searcherMetricValue?: V1NumberRangeFilter;
 }
 
 /**
@@ -7380,19 +7370,19 @@ export interface V1TrialSimulation {
  */
 export interface V1TrialSorter {
     /**
-     * 
+     * The namespace for the sort field.
      * @type {TrialSorterNamespace}
      * @memberof V1TrialSorter
      */
     namespace: TrialSorterNamespace;
     /**
-     * 
+     * The name of the sort field.
      * @type {string}
      * @memberof V1TrialSorter
      */
     field: string;
     /**
-     * 
+     * The ordering for the sort.
      * @type {V1OrderBy}
      * @memberof V1TrialSorter
      */
@@ -7406,7 +7396,7 @@ export interface V1TrialSorter {
  */
 export interface V1TrialTag {
     /**
-     * 
+     * The actual tag.
      * @type {string}
      * @memberof V1TrialTag
      */
@@ -7414,43 +7404,43 @@ export interface V1TrialTag {
 }
 
 /**
- * 
+ * Struct that represents a dynamic collection of trials, along with some accompanying metadata.
  * @export
  * @interface V1TrialsCollection
  */
 export interface V1TrialsCollection {
     /**
-     * 
+     * The id for the collection.
      * @type {number}
      * @memberof V1TrialsCollection
      */
     id: number;
     /**
-     * 
+     * The id of the user who created the collection.
      * @type {number}
      * @memberof V1TrialsCollection
      */
     userId: number;
     /**
-     * 
+     * The id of the project that the collection belongs to .
      * @type {number}
      * @memberof V1TrialsCollection
      */
     projectId: number;
     /**
-     * 
+     * The name of the collection.
      * @type {string}
      * @memberof V1TrialsCollection
      */
     name: string;
     /**
-     * 
+     * The filters that define the trials within the collection.
      * @type {V1TrialFilters}
      * @memberof V1TrialsCollection
      */
     filters: V1TrialFilters;
     /**
-     * 
+     * A sorter that determines the order for trials in the collection.
      * @type {V1TrialSorter}
      * @memberof V1TrialsCollection
      */
@@ -20787,6 +20777,7 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
     return {
         /**
          * 
+         * @summary Create a Trial Collection for a set of TrialFilters
          * @param {V1CreateTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -20826,7 +20817,8 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
-         * @param {number} [id] 
+         * @summary Removes a TrialCollection
+         * @param {number} [id] The id for the TrialsCollection.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -20861,46 +20853,8 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
-         * @param {V1GetTrialTagsRequest} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getTrialTags(body: V1GetTrialTagsRequest, options: any = {}): FetchArgs {
-            // verify required parameter 'body' is not null or undefined
-            if (body === null || body === undefined) {
-                throw new RequiredError('body','Required parameter body was null or undefined when calling getTrialTags.');
-            }
-            const localVarPath = `/api/v1/trials/tags`;
-            const localVarUrlObj = url.parse(localVarPath, true);
-            const localVarRequestOptions = Object.assign({ method: 'POST' }, options);
-            const localVarHeaderParameter = {} as any;
-            const localVarQueryParameter = {} as any;
-
-            // authentication BearerToken required
-            if (configuration && configuration.apiKey) {
-                const localVarApiKeyValue = typeof configuration.apiKey === 'function'
-					? configuration.apiKey("Authorization")
-					: configuration.apiKey;
-                localVarHeaderParameter["Authorization"] = localVarApiKeyValue;
-            }
-
-            localVarHeaderParameter['Content-Type'] = 'application/json';
-
-            localVarUrlObj.query = Object.assign({}, localVarUrlObj.query, localVarQueryParameter, options.query);
-            // fix override query string Detail: https://stackoverflow.com/a/7517673/1077943
-            delete localVarUrlObj.search;
-            localVarRequestOptions.headers = Object.assign({}, localVarHeaderParameter, options.headers);
-            const needsSerialization = (<any>"V1GetTrialTagsRequest" !== "string") || localVarRequestOptions.headers['Content-Type'] === 'application/json';
-            localVarRequestOptions.body =  needsSerialization ? JSON.stringify(body || {}) : (body || "");
-
-            return {
-                url: url.format(localVarUrlObj),
-                options: localVarRequestOptions,
-            };
-        },
-        /**
-         * 
-         * @param {number} [projectId] 
+         * @summary Return all collectiions for a specific project
+         * @param {number} [projectId] The id of the project for which to retrieve all collections.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -20935,6 +20889,7 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
+         * @summary Update tags for trials by the trial ID
          * @param {V1PatchTrialsRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -20974,6 +20929,7 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
+         * @summary Add tags to a TrialCollection
          * @param {V1PatchTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21013,6 +20969,7 @@ export const TrialComparisonApiFetchParamCreator = function (configuration?: Con
         },
         /**
          * 
+         * @summary Return trials matching a set of TrialFilters
          * @param {V1QueryTrialsRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21061,6 +21018,7 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
+         * @summary Create a Trial Collection for a set of TrialFilters
          * @param {V1CreateTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21079,7 +21037,8 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {number} [id] 
+         * @summary Removes a TrialCollection
+         * @param {number} [id] The id for the TrialsCollection.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -21097,25 +21056,8 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
-         * @param {V1GetTrialTagsRequest} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getTrialTags(body: V1GetTrialTagsRequest, options?: any): (fetch?: FetchAPI, basePath?: string) => Promise<V1GetTrialTagsResponse> {
-            const localVarFetchArgs = TrialComparisonApiFetchParamCreator(configuration).getTrialTags(body, options);
-            return (fetch: FetchAPI = portableFetch, basePath: string = BASE_PATH) => {
-                return fetch(basePath + localVarFetchArgs.url, localVarFetchArgs.options).then((response) => {
-                    if (response.status >= 200 && response.status < 300) {
-                        return response.json();
-                    } else {
-                        throw response;
-                    }
-                });
-            };
-        },
-        /**
-         * 
-         * @param {number} [projectId] 
+         * @summary Return all collectiions for a specific project
+         * @param {number} [projectId] The id of the project for which to retrieve all collections.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -21133,6 +21075,7 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Update tags for trials by the trial ID
          * @param {V1PatchTrialsRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21151,6 +21094,7 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Add tags to a TrialCollection
          * @param {V1PatchTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21169,6 +21113,7 @@ export const TrialComparisonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @summary Return trials matching a set of TrialFilters
          * @param {V1QueryTrialsRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21196,6 +21141,7 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
     return {
         /**
          * 
+         * @summary Create a Trial Collection for a set of TrialFilters
          * @param {V1CreateTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21205,7 +21151,8 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {number} [id] 
+         * @summary Removes a TrialCollection
+         * @param {number} [id] The id for the TrialsCollection.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -21214,16 +21161,8 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
         },
         /**
          * 
-         * @param {V1GetTrialTagsRequest} body 
-         * @param {*} [options] Override http request option.
-         * @throws {RequiredError}
-         */
-        getTrialTags(body: V1GetTrialTagsRequest, options?: any) {
-            return TrialComparisonApiFp(configuration).getTrialTags(body, options)(fetch, basePath);
-        },
-        /**
-         * 
-         * @param {number} [projectId] 
+         * @summary Return all collectiions for a specific project
+         * @param {number} [projectId] The id of the project for which to retrieve all collections.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -21232,6 +21171,7 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Update tags for trials by the trial ID
          * @param {V1PatchTrialsRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21241,6 +21181,7 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Add tags to a TrialCollection
          * @param {V1PatchTrialsCollectionRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21250,6 +21191,7 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
         },
         /**
          * 
+         * @summary Return trials matching a set of TrialFilters
          * @param {V1QueryTrialsRequest} body 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
@@ -21269,6 +21211,7 @@ export const TrialComparisonApiFactory = function (configuration?: Configuration
 export class TrialComparisonApi extends BaseAPI {
     /**
      * 
+     * @summary Create a Trial Collection for a set of TrialFilters
      * @param {V1CreateTrialsCollectionRequest} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -21280,7 +21223,8 @@ export class TrialComparisonApi extends BaseAPI {
 
     /**
      * 
-     * @param {number} [id] 
+     * @summary Removes a TrialCollection
+     * @param {number} [id] The id for the TrialsCollection.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TrialComparisonApi
@@ -21291,18 +21235,8 @@ export class TrialComparisonApi extends BaseAPI {
 
     /**
      * 
-     * @param {V1GetTrialTagsRequest} body 
-     * @param {*} [options] Override http request option.
-     * @throws {RequiredError}
-     * @memberof TrialComparisonApi
-     */
-    public getTrialTags(body: V1GetTrialTagsRequest, options?: any) {
-        return TrialComparisonApiFp(this.configuration).getTrialTags(body, options)(this.fetch, this.basePath);
-    }
-
-    /**
-     * 
-     * @param {number} [projectId] 
+     * @summary Return all collectiions for a specific project
+     * @param {number} [projectId] The id of the project for which to retrieve all collections.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof TrialComparisonApi
@@ -21313,6 +21247,7 @@ export class TrialComparisonApi extends BaseAPI {
 
     /**
      * 
+     * @summary Update tags for trials by the trial ID
      * @param {V1PatchTrialsRequest} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -21324,6 +21259,7 @@ export class TrialComparisonApi extends BaseAPI {
 
     /**
      * 
+     * @summary Add tags to a TrialCollection
      * @param {V1PatchTrialsCollectionRequest} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -21335,6 +21271,7 @@ export class TrialComparisonApi extends BaseAPI {
 
     /**
      * 
+     * @summary Return trials matching a set of TrialFilters
      * @param {V1QueryTrialsRequest} body 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
