@@ -451,7 +451,7 @@ WHERE t.id = $1;
 	return errors.Wrapf(err, "error updating best validation for trial %d", id)
 }
 
-// Augmented Trial
+// TrialsAugmented shows provides information about a Trial.
 type TrialsAugmented struct {
 	bun.BaseModel         `bun:"table:trials_augmented_view,alias:trials_augmented_view"`
 	TrialID               int32              `bun:"trial_id"`
@@ -503,7 +503,7 @@ func (t *TrialsAugmented) Proto() *apiv1.AugmentedTrial {
 	}
 }
 
-// Collection of Trials matching a set of TrialFilters
+// TrialsCollection is a collection of Trials matching a set of TrialFilters.
 type TrialsCollection struct {
 	ID        int32               `bun:"id,pk,autoincrement"`
 	UserId    int32               `bun:"user_id"`
@@ -524,7 +524,7 @@ func (tc *TrialsCollection) Proto() *apiv1.TrialsCollection {
 	}
 }
 
-// Map of OrderBy choices to Sort Choices
+// QueryTrialsOrderMap is a map of OrderBy choices to Sort Choices.
 var QueryTrialsOrderMap = map[apiv1.OrderBy]SortDirection{
 	apiv1.OrderBy_ORDER_BY_UNSPECIFIED: SortDirectionAsc,
 	apiv1.OrderBy_ORDER_BY_ASC:         SortDirectionAsc,
@@ -543,7 +543,7 @@ func hParamAccessor(hp string) string {
 	return "hparams->>" + strings.Join(nestingWithQuotes, "->>")
 }
 
-// Apply a patch operation to a set of Trials
+// ApplyTrialPatch applies a patch operation to a set of Trials.
 func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (*bun.UpdateQuery, error) {
 	// takes an update query and adds the Set clauses for the patch
 
@@ -564,6 +564,7 @@ func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (
 	return q, nil
 }
 
+// TrialsColumnForNamespace returns the correct namespace for a TrialSorter
 func (db *PgDB) TrialsColumnForNamespace(namespace apiv1.TrialSorter_Namespace, field string) (string, error) {
 	if !safeString.MatchString(field) {
 		return "", fmt.Errorf("%s filter %s contains possible SQL injection", namespace, field)
@@ -610,6 +611,7 @@ func conditionalForDateTimeRange(dateTime *apiv1.TimeRangeFilter) string {
 	}
 }
 
+// FilterTrials queries for Trials matching the supplied TrialFilters.
 func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, selectAll bool) (*bun.SelectQuery, error) {
 	// FilterTrials filters trials according to filters
 

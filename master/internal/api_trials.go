@@ -492,7 +492,6 @@ func (a *apiServer) PatchTrials(ctx context.Context, req *apiv1.PatchTrialsReque
 		q.Where("id IN (?)", bun.In(trialIds))
 	default:
 		return nil, fmt.Errorf("bad target for trials patch %f", targetType)
-
 	}
 
 	res, err := q.Exec(context.TODO())
@@ -552,7 +551,6 @@ func (a *apiServer) CreateTrialsCollection(
 		return nil, fmt.Errorf("couldnt create trials collection %w", err)
 	}
 
-	fmt.Println("here are the filters", req.Filters)
 	err = checkTrialFiltersEmpty(req.Filters)
 
 	if err != nil {
