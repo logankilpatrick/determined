@@ -401,7 +401,8 @@ func checkTrialFiltersEmpty(f *apiv1.TrialFilters) error {
 	return nil
 }
 
-func (a *apiServer) QueryTrials(ctx context.Context, req *apiv1.QueryTrialsRequest) (*apiv1.QueryTrialsResponse, error) {
+func (a *apiServer) QueryTrials(ctx context.Context, 
+	req *apiv1.QueryTrialsRequest) (*apiv1.QueryTrialsResponse, error) {
 	err := checkTrialFiltersEmpty(req.Filters)
 	if err != nil {
 		return nil, fmt.Errorf("error querying tags for trials %w", err)
@@ -452,7 +453,8 @@ func (a *apiServer) QueryTrials(ctx context.Context, req *apiv1.QueryTrialsReque
 	return &resp, nil
 }
 
-func (a *apiServer) PatchTrials(ctx context.Context, req *apiv1.PatchTrialsRequest) (*apiv1.PatchTrialsResponse, error) {
+func (a *apiServer) PatchTrials(ctx context.Context, 
+	req *apiv1.PatchTrialsRequest) (*apiv1.PatchTrialsResponse, error) {
 	_, _, err := grpcutil.GetUser(ctx, a.m.db, &a.m.config.InternalConfig.ExternalSessions)
 	if err != nil {
 		return nil, fmt.Errorf("couldnt patch trials %w", err)
@@ -546,7 +548,8 @@ func (a *apiServer) GetTrialsCollections(
 func (a *apiServer) CreateTrialsCollection(
 	ctx context.Context, req *apiv1.CreateTrialsCollectionRequest,
 ) (*apiv1.CreateTrialsCollectionResponse, error) {
-	user, _, err := grpcutil.GetUser(ctx, a.m.db, &a.m.config.InternalConfig.ExternalSessions)
+	user, _, err := grpcutil.GetUser(ctx, a.m.db, 
+		&a.m.config.InternalConfig.ExternalSessions)
 	if err != nil {
 		return nil, fmt.Errorf("couldnt create trials collection %w", err)
 	}

@@ -544,7 +544,8 @@ func hParamAccessor(hp string) string {
 }
 
 // ApplyTrialPatch applies a patch operation to a set of Trials.
-func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (*bun.UpdateQuery, error) {
+func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, 
+	payload *apiv1.TrialPatch) (*bun.UpdateQuery, error) {
 	// takes an update query and adds the Set clauses for the patch
 
 	if len(payload.AddTag) > 0 || len(payload.RemoveTag) > 0 {
@@ -565,7 +566,8 @@ func (db *PgDB) ApplyTrialPatch(q *bun.UpdateQuery, payload *apiv1.TrialPatch) (
 }
 
 // TrialsColumnForNamespace returns the correct namespace for a TrialSorter
-func (db *PgDB) TrialsColumnForNamespace(namespace apiv1.TrialSorter_Namespace, field string) (string, error) {
+func (db *PgDB) TrialsColumnForNamespace(namespace apiv1.TrialSorter_Namespace, 
+	field string) (string, error) {
 	if !safeString.MatchString(field) {
 		return "", fmt.Errorf("%s filter %s contains possible SQL injection", namespace, field)
 	}
@@ -596,23 +598,22 @@ func conditionalForNumberRange(min *wrappers.DoubleValue, max *wrappers.DoubleVa
 	}
 }
 
-func conditionalForDateTimeRange(dateTime *apiv1.TimeRangeFilter) string {
+func conditionalForDateTimeRange(q *bun.SelectQuery, column string, dateTime *apiv1.TimeRangeFilter) {
 	startTime := dateTime.IntervalStart
 	endTime := dateTime.IntervalEnd
 	switch {
 	case startTime != nil && endTime != nil:
-		return fmt.Sprintf("BETWEEN %f AND %t", startTime, endTime)
+		q.Where("? BETWEEN ? AND ?", column, startTime.AsTime(), endTime.AsTime())
 	case startTime != nil:
-		return fmt.Sprintf(" > %f", startTime)
+		q.Where("? > ?", column, startTime.AsTime())
 	case endTime != nil:
-		return fmt.Sprintf(" < %f", endTime)
-	default:
-		return notNull
+		q.Where("? < ?", column, endTime.AsTime())
 	}
 }
 
 // FilterTrials queries for Trials matching the supplied TrialFilters.
-func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, selectAll bool) (*bun.SelectQuery, error) {
+func (db *PgDB) FilterTrials(q *bun.SelectQuery, 
+	filters *apiv1.TrialFilters, selectAll bool) (*bun.SelectQuery, error) {
 	// FilterTrials filters trials according to filters
 
 	rankFilterApplied := filters.RankWithinExp != nil && filters.RankWithinExp.Rank != 0
@@ -711,13 +712,11 @@ func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, se
 	}
 
 	if filters.StartTime != nil {
-		conditional := conditionalForDateTimeRange(filters.StartTime)
-		q.Where("start_time ?", conditional)
+		conditionalForDateTimeRange(q, "start_time", filters.StartTime)
 	}
 
 	if filters.EndTime != nil {
-		conditional := conditionalForDateTimeRange(filters.EndTime)
-		q.Where("end_time ?", conditional)
+		conditionalForDateTimeRange(q, "end_time", filters.EndTime)
 	}
 
 	if len(filters.States) > 0 {
