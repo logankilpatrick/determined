@@ -511,6 +511,7 @@ service Determined {
     };
   }
 
+  // Return trials matching a set of TrialFilters
   rpc QueryTrials(QueryTrialsRequest) returns (QueryTrialsResponse) {
     option (google.api.http) = {
       post: "/api/v1/trials/query"
@@ -521,6 +522,7 @@ service Determined {
     };
   }
 
+  // Update tags for trials by the trial ID
   rpc PatchTrials(PatchTrialsRequest) returns (PatchTrialsResponse) {
     option (google.api.http) = {
       patch: "/api/v1/trials"
@@ -531,6 +533,7 @@ service Determined {
     };
   }
 
+  // Return all collectiions for a specific project
   rpc GetTrialsCollections(GetTrialsCollectionsRequest)
       returns (GetTrialsCollectionsResponse) {
     option (google.api.http) = {
@@ -541,6 +544,7 @@ service Determined {
     };
   }
 
+  // Create a Trial Collection for a set of TrialFilters
   rpc CreateTrialsCollection(CreateTrialsCollectionRequest)
       returns (CreateTrialsCollectionResponse) {
     option (google.api.http) = {
@@ -552,6 +556,7 @@ service Determined {
     };
   }
 
+  // Add tags to a TrialCollection
   rpc PatchTrialsCollection(PatchTrialsCollectionRequest)
       returns (PatchTrialsCollectionResponse) {
     option (google.api.http) = {
@@ -563,6 +568,7 @@ service Determined {
     };
   }
 
+  // Removes a TrialCollection
   rpc DeleteTrialsCollection(DeleteTrialsCollectionRequest)
       returns (DeleteTrialsCollectionResponse) {
     option (google.api.http) = {

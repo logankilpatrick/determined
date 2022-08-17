@@ -146,6 +146,7 @@ message TrialFilters {
   NumberRangeFilter searcher_metric_value = 15;
 }
 
+// Request to QueryTrials includes pagination parameters and TrialFilters
 message QueryTrialsRequest {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
     json_schema: { required: [ "filters" ] }
@@ -231,11 +232,13 @@ message AugmentedTrial {
   double searcher_metric_value = 20;
 }
 
+// Response for QueryTrials
 message QueryTrialsResponse {
   // The trials matching the query, with extra data.
   repeated AugmentedTrial trials = 1;
 }
 
+// Specifies whether a tag should be added or removed
 message TrialPatch {
   repeated TrialTag add_tag    = 1;
   repeated TrialTag remove_tag = 2;
@@ -262,6 +265,7 @@ message PatchTrialsRequest {
   TrialPatch patch = 4;
 }
 
+// Response message to PatchTrials
 message PatchTrialsResponse {
   // The number of trials that were patched.
   int32 rows_affected = 1;
@@ -289,15 +293,19 @@ message TrialsCollection {
   TrialSorter sorter = 6;
 }
 
+// Request message for GetTrialsCollection
 message GetTrialsCollectionsRequest {
   // The id of the project for which to retrieve all collections
   int32 project_id = 1;
 }
+
+// Response message for GetTrialsCollection
 message GetTrialsCollectionsResponse {
   // The collections belonging to that project.
   repeated TrialsCollection collections = 1;
 }
 
+// Request body for CeateTrials request which includes TrialFilters
 message CreateTrialsCollectionRequest {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
     json_schema: { required: [ "name", "project_id", "filters", "sorter" ] }
@@ -311,10 +319,13 @@ message CreateTrialsCollectionRequest {
   // The sorter for the collection.
   TrialSorter sorter = 4;
 }
+
+//  Response message to CreateTrialCollection
 message CreateTrialsCollectionResponse {
   TrialsCollection collection = 1;
 }
 
+// Request message to PatchTrialsCollection
 message PatchTrialsCollectionRequest {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
     json_schema: { required: [ "id" ] }
@@ -328,14 +339,18 @@ message PatchTrialsCollectionRequest {
   // The new sorter for the collection.
   TrialSorter sorter = 4;
 }
+
+// Response message to PatchTrialsCollection
 message PatchTrialsCollectionResponse {
   // The patched collection.
   TrialsCollection collection = 1;
 }
 
+// Request message to PatchTrialsCollection
 message DeleteTrialsCollectionRequest {
   int32 id = 1;
 }
+// Empty response for DeleteTrialsCollection
 message DeleteTrialsCollectionResponse {}
 
 // Stream trial logs.
