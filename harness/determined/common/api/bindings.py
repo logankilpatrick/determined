@@ -116,7 +116,7 @@ class GetTrialWorkloadsRequestFilterOption(enum.Enum):
     FILTER_OPTION_VALIDATION = "FILTER_OPTION_VALIDATION"
     FILTER_OPTION_CHECKPOINT_OR_VALIDATION = "FILTER_OPTION_CHECKPOINT_OR_VALIDATION"
 
-class PatchTrialsRequestids:
+class PatchTrialsRequestIds:
     def __init__(
         self,
         *,
@@ -125,7 +125,7 @@ class PatchTrialsRequestids:
         self.ids = ids
 
     @classmethod
-    def from_json(cls, obj: Json) -> "PatchTrialsRequestids":
+    def from_json(cls, obj: Json) -> "PatchTrialsRequestIds":
         return cls(
             ids=obj.get("ids", None),
         )
@@ -171,10 +171,10 @@ class TrialProfilerMetricLabelsProfilerMetricType(enum.Enum):
     PROFILER_METRIC_TYPE_MISC = "PROFILER_METRIC_TYPE_MISC"
 
 class TrialSorterNamespace(enum.Enum):
-    TRIALS = "TRIALS"
-    HPARAMS = "HPARAMS"
-    TRAINING_METRICS = "TRAINING_METRICS"
-    VALIDATION_METRICS = "VALIDATION_METRICS"
+    NAMESPACE_TRIALS_UNSPECIFIED = "NAMESPACE_TRIALS_UNSPECIFIED"
+    NAMESPACE_HPARAMS = "NAMESPACE_HPARAMS"
+    NAMESPACE_TRAINING_METRICS = "NAMESPACE_TRAINING_METRICS"
+    NAMESPACE_VALIDATION_METRICS = "NAMESPACE_VALIDATION_METRICS"
 
 class determinedcheckpointv1State(enum.Enum):
     STATE_UNSPECIFIED = "STATE_UNSPECIFIED"
@@ -238,7 +238,7 @@ class determinedtaskv1State(enum.Enum):
     STATE_TERMINATING = "STATE_TERMINATING"
 
 class determinedtrialv1State(enum.Enum):
-    STATE_ACTIVE = "STATE_ACTIVE"
+    STATE_ACTIVE_UNSPECIFIED = "STATE_ACTIVE_UNSPECIFIED"
     STATE_PAUSED = "STATE_PAUSED"
     STATE_STOPPING_CANCELED = "STATE_STOPPING_CANCELED"
     STATE_STOPPING_KILLED = "STATE_STOPPING_KILLED"
@@ -753,6 +753,8 @@ class v1AugmentedTrial:
         validationMetrics: "typing.Dict[str, typing.Any]",
         workspaceId: int,
         rankWithinExp: "typing.Optional[int]" = None,
+        searcherMetric: "typing.Optional[str]" = None,
+        searcherMetricValue: "typing.Optional[float]" = None,
     ):
         self.trialId = trialId
         self.state = state
@@ -772,6 +774,8 @@ class v1AugmentedTrial:
         self.projectId = projectId
         self.workspaceId = workspaceId
         self.totalBatches = totalBatches
+        self.searcherMetric = searcherMetric
+        self.searcherMetricValue = searcherMetricValue
 
     @classmethod
     def from_json(cls, obj: Json) -> "v1AugmentedTrial":
@@ -794,6 +798,8 @@ class v1AugmentedTrial:
             projectId=obj["projectId"],
             workspaceId=obj["workspaceId"],
             totalBatches=obj["totalBatches"],
+            searcherMetric=obj.get("searcherMetric", None),
+            searcherMetricValue=float(obj["searcherMetricValue"]) if obj.get("searcherMetricValue", None) is not None else None,
         )
 
     def to_json(self) -> typing.Any:
@@ -816,6 +822,8 @@ class v1AugmentedTrial:
             "projectId": self.projectId,
             "workspaceId": self.workspaceId,
             "totalBatches": self.totalBatches,
+            "searcherMetric": self.searcherMetric if self.searcherMetric is not None else None,
+            "searcherMetricValue": dump_float(self.searcherMetricValue) if self.searcherMetricValue is not None else None,
         }
 
 class v1AwsCustomTag:
@@ -2816,44 +2824,6 @@ class v1GetTrialResponse:
             "trial": self.trial.to_json(),
         }
 
-class v1GetTrialTagsRequest:
-    def __init__(
-        self,
-        *,
-        filters: "typing.Optional[v1TrialFilters]" = None,
-    ):
-        self.filters = filters
-
-    @classmethod
-    def from_json(cls, obj: Json) -> "v1GetTrialTagsRequest":
-        return cls(
-            filters=v1TrialFilters.from_json(obj["filters"]) if obj.get("filters", None) is not None else None,
-        )
-
-    def to_json(self) -> typing.Any:
-        return {
-            "filters": self.filters.to_json() if self.filters is not None else None,
-        }
-
-class v1GetTrialTagsResponse:
-    def __init__(
-        self,
-        *,
-        tags: "typing.Optional[typing.Sequence[str]]" = None,
-    ):
-        self.tags = tags
-
-    @classmethod
-    def from_json(cls, obj: Json) -> "v1GetTrialTagsResponse":
-        return cls(
-            tags=obj.get("tags", None),
-        )
-
-    def to_json(self) -> typing.Any:
-        return {
-            "tags": self.tags if self.tags is not None else None,
-        }
-
 class v1GetTrialWorkloadsResponse:
     def __init__(
         self,
@@ -3990,9 +3960,9 @@ class v1NumberRangeFilter:
     def __init__(
         self,
         *,
-        name: str,
         max: "typing.Optional[float]" = None,
         min: "typing.Optional[float]" = None,
+        name: "typing.Optional[str]" = None,
     ):
         self.name = name
         self.min = min
@@ -4001,14 +3971,14 @@ class v1NumberRangeFilter:
     @classmethod
     def from_json(cls, obj: Json) -> "v1NumberRangeFilter":
         return cls(
-            name=obj["name"],
+            name=obj.get("name", None),
             min=float(obj["min"]) if obj.get("min", None) is not None else None,
             max=float(obj["max"]) if obj.get("max", None) is not None else None,
         )
 
     def to_json(self) -> typing.Any:
         return {
-            "name": self.name,
+            "name": self.name if self.name is not None else None,
             "min": dump_float(self.min) if self.min is not None else None,
             "max": dump_float(self.max) if self.max is not None else None,
         }
@@ -4291,11 +4261,9 @@ class v1PatchTrialsCollectionRequest:
         id: int,
         filters: "typing.Optional[v1TrialFilters]" = None,
         name: "typing.Optional[str]" = None,
-        projectId: "typing.Optional[int]" = None,
         sorter: "typing.Optional[v1TrialSorter]" = None,
     ):
         self.id = id
-        self.projectId = projectId
         self.name = name
         self.filters = filters
         self.sorter = sorter
@@ -4304,7 +4272,6 @@ class v1PatchTrialsCollectionRequest:
     def from_json(cls, obj: Json) -> "v1PatchTrialsCollectionRequest":
         return cls(
             id=obj["id"],
-            projectId=obj.get("projectId", None),
             name=obj.get("name", None),
             filters=v1TrialFilters.from_json(obj["filters"]) if obj.get("filters", None) is not None else None,
             sorter=v1TrialSorter.from_json(obj["sorter"]) if obj.get("sorter", None) is not None else None,
@@ -4313,7 +4280,6 @@ class v1PatchTrialsCollectionRequest:
     def to_json(self) -> typing.Any:
         return {
             "id": self.id,
-            "projectId": self.projectId if self.projectId is not None else None,
             "name": self.name if self.name is not None else None,
             "filters": self.filters.to_json() if self.filters is not None else None,
             "sorter": self.sorter.to_json() if self.sorter is not None else None,
@@ -4344,7 +4310,7 @@ class v1PatchTrialsRequest:
         *,
         patch: "v1TrialPatch",
         filters: "typing.Optional[v1TrialFilters]" = None,
-        trial: "typing.Optional[PatchTrialsRequestids]" = None,
+        trial: "typing.Optional[PatchTrialsRequestIds]" = None,
     ):
         self.filters = filters
         self.trial = trial
@@ -4354,7 +4320,7 @@ class v1PatchTrialsRequest:
     def from_json(cls, obj: Json) -> "v1PatchTrialsRequest":
         return cls(
             filters=v1TrialFilters.from_json(obj["filters"]) if obj.get("filters", None) is not None else None,
-            trial=PatchTrialsRequestids.from_json(obj["trial"]) if obj.get("trial", None) is not None else None,
+            trial=PatchTrialsRequestIds.from_json(obj["trial"]) if obj.get("trial", None) is not None else None,
             patch=v1TrialPatch.from_json(obj["patch"]),
         )
 
@@ -6325,8 +6291,10 @@ class v1TrialFilters:
         projectIds: "typing.Optional[typing.Sequence[int]]" = None,
         rankWithinExp: "typing.Optional[TrialFiltersRankWithinExp]" = None,
         searcher: "typing.Optional[str]" = None,
+        searcherMetric: "typing.Optional[str]" = None,
+        searcherMetricValue: "typing.Optional[v1NumberRangeFilter]" = None,
         startTime: "typing.Optional[v1TimeRangeFilter]" = None,
-        states: "typing.Optional[typing.Sequence[determinedexperimentv1State]]" = None,
+        states: "typing.Optional[typing.Sequence[determinedtrialv1State]]" = None,
         tags: "typing.Optional[typing.Sequence[v1TrialTag]]" = None,
         trainingMetrics: "typing.Optional[typing.Sequence[v1NumberRangeFilter]]" = None,
         userIds: "typing.Optional[typing.Sequence[int]]" = None,
@@ -6346,6 +6314,8 @@ class v1TrialFilters:
         self.startTime = startTime
         self.endTime = endTime
         self.states = states
+        self.searcherMetric = searcherMetric
+        self.searcherMetricValue = searcherMetricValue
 
     @classmethod
     def from_json(cls, obj: Json) -> "v1TrialFilters":
@@ -6362,7 +6332,9 @@ class v1TrialFilters:
             rankWithinExp=TrialFiltersRankWithinExp.from_json(obj["rankWithinExp"]) if obj.get("rankWithinExp", None) is not None else None,
             startTime=v1TimeRangeFilter.from_json(obj["startTime"]) if obj.get("startTime", None) is not None else None,
             endTime=v1TimeRangeFilter.from_json(obj["endTime"]) if obj.get("endTime", None) is not None else None,
-            states=[determinedexperimentv1State(x) for x in obj["states"]] if obj.get("states", None) is not None else None,
+            states=[determinedtrialv1State(x) for x in obj["states"]] if obj.get("states", None) is not None else None,
+            searcherMetric=obj.get("searcherMetric", None),
+            searcherMetricValue=v1NumberRangeFilter.from_json(obj["searcherMetricValue"]) if obj.get("searcherMetricValue", None) is not None else None,
         )
 
     def to_json(self) -> typing.Any:
@@ -6380,6 +6352,8 @@ class v1TrialFilters:
             "startTime": self.startTime.to_json() if self.startTime is not None else None,
             "endTime": self.endTime.to_json() if self.endTime is not None else None,
             "states": [x.value for x in self.states] if self.states is not None else None,
+            "searcherMetric": self.searcherMetric if self.searcherMetric is not None else None,
+            "searcherMetricValue": self.searcherMetricValue.to_json() if self.searcherMetricValue is not None else None,
         }
 
 class v1TrialLogsFieldsResponse:
@@ -8595,25 +8569,6 @@ def get_GetTrialCheckpoints(
     if _resp.status_code == 200:
         return v1GetTrialCheckpointsResponse.from_json(_resp.json())
     raise APIHttpError("get_GetTrialCheckpoints", _resp)
-
-def post_GetTrialTags(
-    session: "client.Session",
-    *,
-    body: "v1GetTrialTagsRequest",
-) -> "v1GetTrialTagsResponse":
-    _params = None
-    _resp = session._do_request(
-        method="POST",
-        path="/api/v1/trials/tags",
-        params=_params,
-        json=body.to_json(),
-        data=None,
-        headers=None,
-        timeout=None,
-    )
-    if _resp.status_code == 200:
-        return v1GetTrialTagsResponse.from_json(_resp.json())
-    raise APIHttpError("post_GetTrialTags", _resp)
 
 def get_GetTrialWorkloads(
     session: "client.Session",
