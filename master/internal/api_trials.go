@@ -389,9 +389,10 @@ func checkTrialFiltersEmpty(f *apiv1.TrialFilters) error {
 		len(f.Searcher) +
 		len(f.UserIds) +
 		len(f.Tags) +
-		len(f.States)
+		len(f.States) +
+		len(f.SearcherMetric)
 
-	if filtersLength == 0 && f.RankWithinExp == nil && f.StartTime == nil && f.EndTime == nil {
+	if filtersLength == 0 && f.RankWithinExp == nil && f.StartTime == nil && f.EndTime == nil && f.SearcherMetricValue == nil {
 		return emptyFilters
 	}
 	return nil
@@ -660,25 +661,6 @@ func (a *apiServer) DeleteTrialsCollection(
 	}
 
 	return &apiv1.DeleteTrialsCollectionResponse{}, nil
-}
-
-func (a *apiServer) GetTrialTags(_ context.Context, req *apiv1.GetTrialTagsRequest) (*apiv1.GetTrialTagsResponse, error) {
-	var tags []string
-
-	// q := db.Bun().NewSelect().Model(&tags)
-	// q, err := a.m.db.FilterTrials(q, req.Filters)
-
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error fetching tags for trials %w", err)
-	// }
-
-	// err = q.Scan(context.TODO())
-
-	// if err != nil {
-	// 	return nil, fmt.Errorf("error fetching tags for trials %w", err)
-	// }
-
-	return &apiv1.GetTrialTagsResponse{Tags: tags}, nil
 }
 
 func (a *apiServer) KillTrial(
