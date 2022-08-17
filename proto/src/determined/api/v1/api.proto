@@ -521,7 +521,6 @@ service Determined {
     };
   }
 
-
   rpc PatchTrials(PatchTrialsRequest) returns (PatchTrialsResponse) {
     option (google.api.http) = {
       patch: "/api/v1/trials"
@@ -573,7 +572,6 @@ service Determined {
       tags: [ "Trial Comparison" ]
     };
   }
-
 
   // Get a single trial.
   rpc GetTrial(GetTrialRequest) returns (GetTrialResponse) {

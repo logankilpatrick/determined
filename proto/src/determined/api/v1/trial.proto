@@ -160,7 +160,6 @@ message QueryTrialsRequest {
   int32 limit = 4;
 }
 
-
 // Augmented Trial struct to service trail comparison functionality
 message AugmentedTrial {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
@@ -187,49 +186,49 @@ message AugmentedTrial {
     }
   };
   // The id of the trial.
-  int32 trial_id                            = 1;
+  int32 trial_id = 1;
   // The state of the trial.
-  determined.trial.v1.State state           = 2;
-    // The trials hyperparameters.
+  determined.trial.v1.State state = 2;
+  // The trials hyperparameters.
 
-  google.protobuf.Struct hparams            = 3; 
+  google.protobuf.Struct hparams = 3;
   // The training metrics for the trial.
 
-  google.protobuf.Struct training_metrics   = 4;
+  google.protobuf.Struct training_metrics = 4;
   // The validation metrics for the trial.
   google.protobuf.Struct validation_metrics = 5;
   // The tags for the trial.
-  google.protobuf.Struct tags               = 6;
+  google.protobuf.Struct tags = 6;
   // The start time for the trial.
-  google.protobuf.Timestamp start_time      = 7;
+  google.protobuf.Timestamp start_time = 7;
   // The end time for the trial.
-  google.protobuf.Timestamp end_time        = 8;
+  google.protobuf.Timestamp end_time = 8;
   // The searcher type for the trial.
-  string searcher_type                      = 9;
-  // The trials rank within the experiment, according to 
+  string searcher_type = 9;
+  // The trials rank within the experiment, according to
   // the sorter that is provided.
-  int32 rank_within_exp                     = 10;
+  int32 rank_within_exp = 10;
   // The experiment id for the trial.
-  int32 experiment_id                       = 11;
+  int32 experiment_id = 11;
   // The experiment name for the trial.
-  string experiment_name                    = 12;
+  string experiment_name = 12;
   // The experiment description for the trial.
-  string experiment_description             = 13;
+  string experiment_description = 13;
   // The labels for the experiment corresponding to the trial.
-  repeated string experiment_labels         = 14;
+  repeated string experiment_labels = 14;
   // The id of the user who created the experiment corresponding
   // to the trial.
-  int32 user_id                             = 15;
+  int32 user_id = 15;
   // The project id for the trial.
-  int32 project_id                          = 16;
+  int32 project_id = 16;
   // The workspace id for the trial.
-  int32 workspace_id                        = 17;
+  int32 workspace_id = 17;
   // The total number of batches in the trial.
-  int32 total_batches                       = 18;
+  int32 total_batches = 18;
   // The name of the trials searcher metric.
-  string searcher_metric                    = 19;
+  string searcher_metric = 19;
   // The value for the trials searcher metric.
-  double searcher_metric_value              = 20;
+  double searcher_metric_value = 20;
 }
 
 message QueryTrialsResponse {
@@ -242,8 +241,7 @@ message TrialPatch {
   repeated TrialTag remove_tag = 2;
 }
 
-
-// Request to patch trials. Can either specify a set of filters or 
+// Request to patch trials. Can either specify a set of filters or
 // set of trial ids as the patch target.
 message PatchTrialsRequest {
   option (grpc.gateway.protoc_gen_swagger.options.openapiv2_schema) = {
@@ -258,7 +256,7 @@ message PatchTrialsRequest {
     // patch that targets trials matching filters.
     TrialFilters filters = 2;
     // Patch that targets a list of trials.
-    ids trial            = 3;
+    ids trial = 3;
   }
   // The patch to be applied to the trials
   TrialPatch patch = 4;
@@ -278,17 +276,17 @@ message TrialsCollection {
     }
   };
   // The id for the collection.
-  int32 id             = 1;
+  int32 id = 1;
   // The id of the user who created the collection.
-  int32 user_id        = 2;
+  int32 user_id = 2;
   // The id of the project that the collection belongs to .
-  int32 project_id     = 3;
+  int32 project_id = 3;
   // The name of the collection.
-  string name          = 4;
+  string name = 4;
   // The filters that define the trials within the collection.
   TrialFilters filters = 5;
   // A sorter that determines the order for trials in the collection.
-  TrialSorter sorter   = 6;
+  TrialSorter sorter = 6;
 }
 
 message GetTrialsCollectionsRequest {
