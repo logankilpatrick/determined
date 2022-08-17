@@ -563,13 +563,13 @@ func (db *PgDB) TrialsColumnForNamespace(namespace apiv1.TrialSorter_Namespace, 
 		return "", fmt.Errorf("%s filter %s contains possible SQL injection", namespace, field)
 	}
 	switch namespace {
-	case apiv1.TrialSorter_TRIALS:
+	case apiv1.TrialSorter_NAMESPACE_TRIALS_UNSPECIFIED:
 		return field, nil
-	case apiv1.TrialSorter_HPARAMS:
+	case apiv1.TrialSorter_NAMESPACE_HPARAMS:
 		return hParamAccessor(field), nil
-	case apiv1.TrialSorter_TRAINING_METRICS:
+	case apiv1.TrialSorter_NAMESPACE_TRAINING_METRICS:
 		return fmt.Sprintf("training_metrics->>'%s'", field), nil
-	case apiv1.TrialSorter_VALIDATION_METRICS:
+	case apiv1.TrialSorter_NAMESPACE_VALIDATION_METRICS:
 		return fmt.Sprintf("validation_metrics->>'%s'", field), nil
 	default:
 		return field, nil
@@ -612,7 +612,7 @@ func (db *PgDB) FilterTrials(q *bun.SelectQuery, filters *apiv1.TrialFilters, se
 			r = &apiv1.TrialFilters_RankWithinExp{
 				Rank: 0,
 				Sorter: &apiv1.TrialSorter{
-					Namespace: apiv1.TrialSorter_TRIALS,
+					Namespace: apiv1.TrialSorter_NAMESPACE_TRIALS_UNSPECIFIED,
 					Field:     "trial_id",
 					OrderBy:   apiv1.OrderBy_ORDER_BY_ASC,
 				},
