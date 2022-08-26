@@ -331,8 +331,10 @@ const CodeViewer: React.FC<Props> = ({
     return 'yaml';
   }, [ activeFile ]);
 
+  const classes = [ css.base, pageError ? css.noEditor : '' ];
+
   return (
-    <section className={css.base}>
+    <section className={classes.join(' ')}>
       <Section className={viewMode === 'editor' ? css.hideElement : undefined} id="fileTree">
         <Spinner spinning={isFetchingTree}>
           <DirectoryTree
@@ -421,6 +423,7 @@ const CodeViewer: React.FC<Props> = ({
                 style={{
                   justifyContent: 'flex-start',
                   padding: '120px',
+                  width: '100%',
                 }}
                 title={pageError}
                 type={MessageType.Alert}
