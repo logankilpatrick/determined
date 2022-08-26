@@ -421,9 +421,8 @@ const CodeViewer: React.FC<Props> = ({
             pageError ? (
               <Message
                 style={{
-                  justifyContent: 'flex-start',
+                  justifyContent: 'center',
                   padding: '120px',
-                  width: '100%',
                 }}
                 title={pageError}
                 type={MessageType.Alert}
